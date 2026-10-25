@@ -26,16 +26,16 @@
 <button class="btn primary" type="button" id="account-show-login">登入</button>
 <button class="btn" type="button" id="account-show-signup">註冊</button>
 </div>
-<form id="account-login">
+<form id="account-login" method="post" onsubmit="return false">
 <label class="field">Email<input name="email" type="email" autocomplete="username" required placeholder="your@email.com"></label>
 <label class="field">帳號密碼<input name="password" type="password" autocomplete="current-password" required placeholder="English Coach 帳號密碼"></label>
-<button class="btn primary" type="submit">登入並驗證身分</button>
+<button class="btn primary" type="submit" disabled>登入並驗證身分</button>
 </form>
-<form id="account-signup" class="hidden">
+<form id="account-signup" class="hidden" method="post" onsubmit="return false">
 <label class="field">Email<input name="email" type="email" autocomplete="email" required placeholder="your@email.com"></label>
 <label class="field">建立密碼（至少 8 字元）<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
 <label class="field">確認密碼<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>
-<button class="btn primary" type="submit">建立帳號並寄送驗證信</button>
+<button class="btn primary" type="submit" disabled>建立帳號並寄送驗證信</button>
 </form>
 <div id="account-recovery-form" class="hidden">
 <label class="field">新密碼（至少 8 字元）<input id="account-new-password" type="password" autocomplete="new-password" minlength="8"></label>
@@ -93,4 +93,4 @@ $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').val
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import-btn').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>2_000_000)return alert('備份檔不能超過 2MB');try{const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');if(!confirm('匯入將取代目前 '+items.length+' 筆紀錄，確認嗎？'))return;items=rows;await persist();render();alert('匯入完成')}catch{alert('無法匯入：檔案格式不正確')}};refreshAuth();
-</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.8"></script></body></html>
+</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.9"></script></body></html>
