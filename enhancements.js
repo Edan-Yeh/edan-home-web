@@ -87,9 +87,11 @@ function renderComparison(){
     choose.append(check,document.createTextNode(' 加入比較'));
     foot.append(choose);
   }
-  for(const check of document.querySelectorAll('.compare-checkbox input')){
-    const disabled=!check.checked&&count>=2;
-    check.disabled=disabled;
+  for(const card of document.querySelectorAll('.property')){
+    const check=card.querySelector('.compare-checkbox input');
+    if(!check)continue;
+    check.checked=compareSelected.has(card.dataset.propertyId);
+    check.disabled=!check.checked&&compareSelected.size>=2;
   }
 }
 function showComparison(){
@@ -151,6 +153,8 @@ document.querySelector('#property-form .form-grid').append(fields);
 const oldOpenEditor=openEditor;openEditor=function(item){oldOpenEditor(item);const form=document.getElementById('property-form');for(const [key] of metricDefs)form.elements.namedItem(key).value=item?.[key]||''};
 const form=document.getElementById('property-form'),oldSubmit=form.onsubmit;
 form.onsubmit=async function(e){
+ const submittedUrl=form.elements.namedItem('url').value.trim();
+ if(!form.checkValidity()||(submittedUrl&&!safeUrl(submittedUrl))){return oldSubmit.call(form,e)}
  const scores={};for(const [key] of metricDefs)scores[key]=form.elements.namedItem(key).value;
  await oldSubmit.call(form,e);
  const saved=items.find(i=>i.id===editing)||items.find(i=>i.updated===items.map(v=>v.updated).sort().at(-1));
