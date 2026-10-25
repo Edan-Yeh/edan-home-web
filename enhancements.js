@@ -42,7 +42,7 @@ function showDetails(item){
   const evaluation=getAssessment(item);
   const summary=mk('div','detail-summary');
   const result=mk('div','assessment-hero');
-  result.append(mk('div','assessment-number',evaluation.points+' / 100'),mk('div','muted','已填條件計分，上限 '+evaluation.maximum+' 分；缺少的資料不加分'));
+  result.append(mk('div','assessment-number',evaluation.maximum===0?'尚無評分':evaluation.points+' / 100'),mk('div','muted',evaluation.maximum===0?'尚未填寫評分條件；請先編輯房屋資料':'已確認的評分權重 '+evaluation.maximum+' / 100；待確認項目不加分'));
   summary.append(result);
   const grid=mk('div','info-grid');
   addLine(grid,'總價',item.price?Number(item.price).toLocaleString('zh-TW')+' 萬':'');
@@ -54,7 +54,7 @@ function showDetails(item){
   summary.append(grid);body.append(summary);
   const heading=mk('h4','','條件評估與評分明細');body.append(heading);
   const list=mk('div','score-breakdown');
-  for(const d of evaluation.details){const line=mk('div','score-row'),name=mk('span','',d.label),val=mk('strong','',d.known?d.earned+' / '+d.weight:'待確認 · +0');line.append(name,val);list.append(line)}
+  for(const d of evaluation.details){const line=mk('div','score-row'),name=mk('span','',d.label),val=mk('strong','',d.known?d.earned+' / '+d.weight:'待確認');line.append(name,val);list.append(line)}
   body.append(list, mk('h4','','看屋備註'));
   body.append(mk('p','full-note',item.note||'尚未填寫看屋備註'));
   if(item.url&&safeUrl(item.url)){const a=mk('a','detail-link','開啟原始物件網址 ↗');a.href=safeUrl(item.url);a.target='_blank';a.rel='noopener noreferrer';body.append(a)}
@@ -101,7 +101,8 @@ function showComparison(){
   const table=document.createElement('table');table.className='comparison-table';
   const rows=[
     ['房屋名稱',it=>it.title],
-    ['決策評分',it=>{const s=getAssessment(it);return s.points+' / 100（已評 '+s.maximum+' 分）'}],
+    ['評估資料完整度',it=>{const e=getAssessment(it);return e.details.filter(d=>d.known).length+' / '+e.details.length+' 項'}],
+    ['決策評分',it=>{const s=getAssessment(it);return s.maximum===0?'尚無評分（資料未填）':s.points+' / 100（已確認權重 '+s.maximum+' / 100）'}],
     ['總價',it=>it.price?Number(it.price).toLocaleString('zh-TW')+' 萬':'待確認'],
     ['主建物',it=>it.area?it.area+' 坪':'待確認'],
     ['房數',it=>it.rooms?it.rooms+' 房':'待確認'],
@@ -115,7 +116,7 @@ function showComparison(){
     ['備註',it=>it.note||'尚未填寫']
   ];
   for(const [label,fn] of rows){const tr=document.createElement('tr'),th=mk('th','',label);tr.append(th);for(const item of chosen)tr.append(mk('td','',fn(item)));table.append(tr)}
-  body.append(table);dlg.showModal();
+  const hint=mk('p','muted','提示：未確認的條件不代表不符合；資料不足時不能用 0 分判定房屋優劣。');body.append(hint,table);dlg.showModal();
 }
 const css=document.createElement('style');css.textContent=`
 .compare-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#eaf4f0;border:1px solid #b7dcd1;padding:12px 16px;border-radius:13px;margin-bottom:15px}
