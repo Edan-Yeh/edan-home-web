@@ -32,6 +32,7 @@ async function validate(){
  if(!data){deny('此帳號尚未獲得 Home Tracker 使用權限。請複製下方的帳號 UID，供管理員授權。');document.getElementById('account-uid').textContent=user.id;document.getElementById('account-uid-wrap').classList.remove('hidden');return;}
  enter(user);
 }
+document.getElementById('account-copy-uid').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(document.getElementById('account-uid').textContent);notify('帳號 UID 已複製，請提供管理員完成授權。')}catch{notify('無法自動複製，請手動選取 UID。',true)}});
 loginForm.addEventListener('submit',async e=>{
  e.preventDefault();if(busy)return;busy=true;
  const btn=loginForm.querySelector('button[type=submit]');btn.disabled=true;
