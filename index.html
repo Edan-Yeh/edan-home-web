@@ -20,7 +20,7 @@
 <label class="field">帳號密碼<input name="password" type="password" autocomplete="current-password" required placeholder="English Coach 帳號密碼"></label>
 <button class="btn primary" type="submit">登入並驗證身分</button>
 </form><button id="account-reset" type="button">忘記帳號密碼？</button>
-<p id="account-message" role="status">正在確認登入狀態…</p>
+<p id="account-message" role="status">正在確認登入狀態…</p><div id="account-uid-wrap" class="hidden" style="font-size:12px;color:#426862;overflow-wrap:anywhere;background:#ecf4f1;padding:10px;border-radius:10px">帳號 UID（提供管理員授權）：<strong id="account-uid"></strong><button type="button" class="btn small" id="account-copy-uid" style="margin-top:8px">複製 UID</button></div>
 <p class="warn">通過帳號驗證後，仍需使用原本的本機解密密碼。房屋資料不會上傳 Supabase；此網站的 HTML 仍是公開的。</p>
 </div></section>
 <section class="auth" id="auth-screen"><div class="auth-card"><div class="auth-mark">⌂</div><h2 id="auth-title">建立本機密碼</h2><p class="muted" id="auth-desc">第一次使用，設定至少 8 個字元的密碼，加密儲存在這台裝置上的看屋資料。</p><form id="auth-form"><label class="field">密碼<input type="password" id="password" minlength="8" required autocomplete="current-password" placeholder="輸入密碼"></label><label class="field" id="confirm-field">確認密碼<input type="password" id="confirm" minlength="8" autocomplete="new-password" placeholder="再次輸入密碼"></label><div class="error hidden" id="auth-error"></div><button type="submit" class="btn primary" id="auth-submit">建立並進入</button></form><p class="warn">這是本機加密解鎖，不是 GitHub／雲端帳號登入。密碼遺失無法復原；清除瀏覽器資料也會失去紀錄。請定期匯出備份，且不要在共用裝置使用。</p></div></section>
@@ -67,4 +67,4 @@ $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').val
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import-btn').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>2_000_000)return alert('備份檔不能超過 2MB');try{const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');if(!confirm('匯入將取代目前 '+items.length+' 筆紀錄，確認嗎？'))return;items=rows;await persist();render();alert('匯入完成')}catch{alert('無法匯入：檔案格式不正確')}};refreshAuth();
-</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.0"></script></body></html>
+</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.1"></script></body></html>
