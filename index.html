@@ -50,7 +50,7 @@
 <p class="warn">通過帳號驗證後，仍需使用原本的本機解密密碼。房屋資料不會上傳 Supabase；此網站的 HTML 仍是公開的。</p>
 </div></section>
 <section class="auth" id="auth-screen"><div class="auth-card"><div class="auth-mark">⌂</div><h2 id="auth-title">建立本機密碼</h2><p class="muted" id="auth-desc">第一次使用，設定至少 8 個字元的密碼，加密儲存在這台裝置上的看屋資料。</p><form id="auth-form"><label class="field">密碼<input type="password" id="password" minlength="8" required autocomplete="current-password" placeholder="輸入密碼"></label><label class="field" id="confirm-field">確認密碼<input type="password" id="confirm" minlength="8" autocomplete="new-password" placeholder="再次輸入密碼"></label><div class="error hidden" id="auth-error"></div><button type="submit" class="btn primary" id="auth-submit">建立並進入</button></form><p class="warn">這是本機加密解鎖，不是 GitHub／雲端帳號登入。密碼遺失無法復原；清除瀏覽器資料也會失去紀錄。請定期匯出備份，且不要在共用裝置使用。</p></div></section>
-<main class="hidden" id="dashboard"><div class="headline"><div><h2>我的房屋清單</h2><div class="muted">集中管理收藏、看屋備註與決策狀態</div></div><div class="actions"><button class="btn" id="import-btn">匯入 JSON</button><button class="btn" id="export-btn">匯出備份</button><button class="btn primary" id="add-btn">＋ 新增房屋</button></div></div>
+<main class="hidden" id="dashboard"><div class="headline"><div><h2>我的房屋清單</h2><div class="muted">集中管理收藏、看屋備註與決策狀態</div></div><div class="actions"><button class="btn" id="import-btn">合併匯入 JSON</button><button class="btn" id="export-btn">匯出備份</button><button class="btn primary" id="add-btn">＋ 新增房屋</button></div></div>
 <div class="stats"><div class="stat"><span>全部物件</span><strong id="count-all">0</strong></div><div class="stat"><span>待看屋</span><strong id="count-unseen">0</strong></div><div class="stat"><span>已看屋</span><strong id="count-viewed">0</strong></div><div class="stat"><span>值得複看</span><strong id="count-revisit">0</strong></div></div>
 <div class="toolbar"><input id="search" placeholder="搜尋地址、案名、備註…"><select id="status-filter"><option value="">全部狀態</option><option value="unseen">待看屋</option><option value="viewed">已看屋</option><option value="revisit">值得複看</option><option value="offered">已出價</option><option value="excluded">已排除</option></select><select id="sort"><option value="newest">最近更新</option><option value="priceAsc">總價低到高</option><option value="priceDesc">總價高到低</option></select><select id="budget-filter" aria-label="預算篩選"><option value="">不限總價</option><option value="1700">1700 萬以內</option><option value="2000">2000 萬以內</option></select><select id="criteria-filter" aria-label="條件篩選"><option value="">全部物件</option><option value="pass">符合基本條件</option><option value="review">需補資料或不符合</option></select><div class="result-hint" id="result-hint"></div></div>
 <div class="cards" id="cards"></div><div class="notice">資料僅儲存在目前瀏覽器，使用 AES-GCM 加密；不會自動跨裝置同步。匯出 JSON 為未加密備份，請妥善保管。公開頁面不包含你的看屋紀錄。</div>
@@ -92,5 +92,42 @@ function refreshAuth(){const has=!!localStorage.getItem(KEY);$('auth-title').tex
 $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').value,has=!!localStorage.getItem(KEY);$('auth-error').classList.add('hidden');if(pwd.length<8)return fail('密碼至少需要 8 個字元');if(!has&&pwd!==$('confirm').value)return fail('兩次密碼不一致');$('auth-submit').disabled=true;try{if(has){const obj=JSON.parse(localStorage.getItem(KEY));if(obj.v!==1)throw Error('Unsupported vault');const key=await derive(pwd,bytes(obj.salt));const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(obj.iv)},key,bytes(obj.data));const rows=JSON.parse(decoder.decode(plain));if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid vault');items=rows;secret=key}else{const salt=crypto.getRandomValues(new Uint8Array(16));secret=await derive(pwd,salt);items=[];localStorage.setItem(KEY,await encrypt(items,secret,salt))}$('auth-screen').classList.add('hidden');$('dashboard').classList.remove('hidden');$('lock-btn').classList.remove('hidden');$('password').value='';$('confirm').value='';render()}catch(err){fail('無法解鎖：密碼不正確或資料已損壞。')}finally{$('auth-submit').disabled=false}};
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-$('import-btn').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>2_000_000)return alert('備份檔不能超過 2MB');try{const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');if(!confirm('匯入將取代目前 '+items.length+' 筆紀錄，確認嗎？'))return;items=rows;await persist();render();alert('匯入完成')}catch{alert('無法匯入：檔案格式不正確')}};refreshAuth();
+function listingKey(item){
+ const link=safeUrl(item.url||'');
+ if(link){const found=new URL(link).pathname.match(/\/house\/(\d+)/);if(found)return 'yungching:'+found[1];return link}
+ return 'title:'+item.title.trim().toLowerCase()
+}
+function mergeProperty(existing,incoming){
+ const result={...existing};
+ const fill=['price','area','rooms','elevator','layout','humidity','noise','commute','ratingTransit','ratingLight','ratingLayout','ratingCondition'];
+ for(const key of fill){
+  if((result[key]==null||result[key]==='')&&incoming[key]!=null&&incoming[key]!=='')result[key]=incoming[key];
+ }
+ if((!result.url||result.url==='')&&incoming.url)result.url=incoming.url;
+ if((!result.note||result.note.startsWith('參考物件：'))&&incoming.note)result.note=incoming.note;
+ // Preserve all existing manual decisions. Only newly added listings use imported status.
+ return result
+}
+$('import-btn').onclick=()=>$('import-file').click();
+$('import-file').onchange=async e=>{
+ const file=e.target.files[0];e.target.value='';
+ if(!file)return;
+ if(file.size>2_000_000){alert('備份檔不能超過 2MB');return}
+ try{
+  const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;
+  if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');
+  const unique=new Set();for(const row of rows){const key=listingKey(row);if(unique.has(key))throw Error('duplicate');unique.add(key)}
+  const options=confirm('確定匯入 '+rows.length+' 筆嗎？\n「確定」＝合併新資料、保留現有看屋狀態與筆記。\n「取消」＝不變更資料。');
+  if(!options)return;
+  const next=items.map(x=>({...x}));let added=0,merged=0;
+  for(const row of rows){
+   const key=listingKey(row),index=next.findIndex(x=>listingKey(x)===key);
+   if(index<0){next.push({...row,id:crypto.randomUUID()});added++}
+   else{next[index]=mergeProperty(next[index],row);merged++}
+  }
+  const previous=items;items=next;
+  try{await persist()}catch(error){items=previous;throw error}
+  render();alert('匯入完成：新增 '+added+' 筆、合併 '+merged+' 筆。原看屋狀態及自填筆記均保留。')
+ }catch{alert('匯入失敗：資料格式不正確或瀏覽器儲存失敗，既有紀錄未修改。')}
+}refreshAuth();
 </script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.9"></script></body></html>
