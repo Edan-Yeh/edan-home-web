@@ -129,5 +129,5 @@ $('import-file').onchange=async e=>{
   try{await persist()}catch(error){items=previous;throw error}
   render();alert('匯入完成：新增 '+added+' 筆、合併 '+merged+' 筆。原看屋狀態及自填筆記均保留。')
  }catch{alert('匯入失敗：資料格式不正確或瀏覽器儲存失敗，既有紀錄未修改。')}
-}refreshAuth();
+};refreshAuth();
 </script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.9"></script></body></html>
