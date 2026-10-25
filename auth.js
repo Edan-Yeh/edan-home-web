@@ -16,18 +16,20 @@ function lockLocal(){
 }
 function deny(text){authorized=false;lockLocal();gate.classList.remove('hidden');logout.classList.add('hidden');notify(text,true);}
 function enter(user){
+ document.getElementById('account-uid-wrap').classList.add('hidden');
  authorized=true;gate.classList.add('hidden');
  logout.classList.remove('hidden');
  document.getElementById('account-email').textContent=user.email||'已驗證帳號';
  notify('');
 }
 async function validate(){
+ document.getElementById('account-uid-wrap').classList.add('hidden');
  const {data:{user},error}=await client.auth.getUser();
  if(error||!user){authorized=false;gate.classList.remove('hidden');logout.classList.add('hidden');notify('請以 English Coach 既有帳號登入。');return;}
  if(!user.email_confirmed_at){deny('此帳號尚未完成信箱驗證。');return;}
  const {data,error:dbError}=await client.from('home_tracker_access').select('user_id').eq('user_id',user.id).maybeSingle();
  if(dbError){deny('無法確認房屋網站的帳號授權，請稍後再試。');return;}
- if(!data){deny('此帳號尚未獲得 Home Tracker 使用權限。請由管理員授權；不會開放給其他英文平台使用者。');return;}
+ if(!data){deny('此帳號尚未獲得 Home Tracker 使用權限。請複製下方的帳號 UID，供管理員授權。');document.getElementById('account-uid').textContent=user.id;document.getElementById('account-uid-wrap').classList.remove('hidden');return;}
  enter(user);
 }
 loginForm.addEventListener('submit',async e=>{
