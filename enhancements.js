@@ -97,28 +97,112 @@ function renderComparison(){
 function showComparison(){
   const chosen=getComparisonItems();
   if(chosen.length!==2)return;
-  const dlg=document.getElementById('compare-dialog'),body=document.getElementById('compare-body');body.replaceChildren();
-  const table=document.createElement('table');table.className='comparison-table';
-  const rows=[
-    ['房屋名稱',it=>it.title],
-    ['評估資料完整度',it=>{const e=getAssessment(it);return e.details.filter(d=>d.known).length+' / '+e.details.length+' 項'}],
-    ['決策評分',it=>{const s=getAssessment(it);return s.maximum===0?'尚無評分（資料未填）':s.points+' / 100（已確認權重 '+s.maximum+' / 100）'}],
-    ['總價',it=>it.price?Number(it.price).toLocaleString('zh-TW')+' 萬':'待確認'],
-    ['主建物',it=>it.area?it.area+' 坪':'待確認'],
-    ['房數',it=>it.rooms?it.rooms+' 房':'待確認'],
-    ['看屋狀態',it=>labels[it.status]||'待確認'],
-    ['電梯',it=>it.elevator==='yes'?'有':it.elevator==='no'?'無':'待確認'],
-    ['格局',it=>it.layout==='yes'?'確認合法':it.layout==='no'?'有疑慮':'待確認'],
-    ['濕氣',it=>it.humidity==='no'?'無明顯問題':it.humidity==='yes'?'有疑慮':'待確認'],
-    ['噪音',it=>it.noise==='no'?'無明顯問題':it.noise==='yes'?'有疑慮':'待確認'],
-    ['通勤',it=>it.commute||'待確認'],
-    ...metricDefs.map(([key,label])=>[label,it=>it[key]?it[key]+' / 5':'未評分']),
-    ['備註',it=>it.note||'尚未填寫']
+  const dlg=document.getElementById('compare-dialog'),body=document.getElementById('compare-body');
+  body.replaceChildren();
+  const assessment=chosen.map(getAssessment);
+  const summary=mk('div','compare-summary');
+  chosen.forEach((home,index)=>{
+    const panel=mk('section','compare-home');
+    panel.append(mk('h4','',home.title));
+    const known=assessment[index].details.filter(d=>d.known).length;
+    const score=assessment[index].maximum===0?'尚無評分':assessment[index].points+' / 100';
+    panel.append(mk('strong','compare-home-score',score));
+    panel.append(mk('div','muted','已確認 '+known+' / '+assessment[index].details.length+' 項評估條件'));
+    const meter=mk('div','compare-meter');
+    const filled=mk('span','');
+    filled.style.width=(100*known/assessment[index].details.length)+'%';
+    meter.append(filled);panel.append(meter);
+    summary.append(panel);
+  });
+  body.append(summary);
+  const guidance=mk('p','muted','分數只計入已填條件。待確認不代表不符合，也不能直接據此排名。');
+  body.append(guidance);
+  const controls=mk('div','comparison-controls');
+  const filterLabel=mk('label','difference-toggle');
+  const filter=document.createElement('input');
+  filter.type='checkbox';filter.id='diff-only';
+  filterLabel.append(filter,document.createTextNode(' 只顯示差異'));
+  const counter=mk('span','muted');
+  controls.append(filterLabel,counter);body.append(controls);
+  const groups=[
+    {title:'價格與空間',rows:[
+      ['總價',it=>it.price!==''&&it.price!=null?Number(it.price).toLocaleString('zh-TW')+' 萬':null],
+      ['主建坪數',it=>it.area!==''&&it.area!=null?it.area+' 坪':null],
+      ['房數',it=>it.rooms!==''&&it.rooms!=null?it.rooms+' 房':null]
+    ]},
+    {title:'格局與屋況',rows:[
+      ['看屋狀態',it=>labels[it.status]||null],
+      ['電梯',it=>it.elevator==='yes'?'有':it.elevator==='no'?'無':null],
+      ['原始合法格局',it=>it.layout==='yes'?'確認合法':it.layout==='no'?'有疑慮':null],
+      ['漏水／潮濕',it=>it.humidity==='no'?'無明顯問題':it.humidity==='yes'?'有疑慮':null],
+      ['噪音',it=>it.noise==='no'?'無明顯問題':it.noise==='yes'?'有疑慮':null]
+    ]},
+    {title:'基隆通勤',rows:[
+      ['交通與通勤備註',it=>it.commute?.trim()||null]
+    ]},
+    {title:'主觀評價與決策',rows:[
+      ...metricDefs.map(([key,label])=>[label,it=>it[key]?it[key]+' / 5':null]),
+      ['看屋筆記',it=>it.note?.trim()||null]
+    ]}
   ];
-  for(const [label,fn] of rows){const tr=document.createElement('tr'),th=mk('th','',label);tr.append(th);for(const item of chosen)tr.append(mk('td','',fn(item)));table.append(tr)}
-  const hint=mk('p','muted','提示：未確認的條件不代表不符合；資料不足時不能用 0 分判定房屋優劣。');body.append(hint,table);dlg.showModal();
+  const container=mk('div','compare-groups');body.append(container);
+  function refresh(){
+    container.replaceChildren();
+    let visible=0,differences=0,incomplete=0;
+    for(const group of groups){
+      const section=mk('section','compare-group'),title=mk('h4','',group.title),table=document.createElement('table');
+      table.className='comparison-table';
+      let groupVisible=0;
+      for(const [label,fn] of group.rows){
+        const values=chosen.map(fn);
+        const bothKnown=values.every(v=>v!==null&&v!==undefined&&v!=='');
+        const differ=bothKnown&&values[0]!==values[1];
+        const needsData=!bothKnown;
+        if(differ)differences++;
+        if(needsData)incomplete++;
+        if(filter.checked&&!differ)continue;
+        const tr=document.createElement('tr');
+        if(differ)tr.className='has-difference';
+        if(needsData)tr.className='needs-data';
+        tr.append(mk('th','',label));
+        values.forEach(value=>{
+          const missing=value===null||value===undefined||value==='';
+          tr.append(mk('td',missing?'missing-value':'',missing?'待確認':String(value)));
+        });
+        table.append(tr);
+        groupVisible++;visible++;
+      }
+      if(groupVisible){section.append(title,table);container.append(section)}
+    }
+    counter.textContent=filter.checked?'已顯示 '+visible+' 項確定差異':'已確認差異 '+differences+' 項 · 待補資料 '+incomplete+' 項';
+    if(!visible){
+      const msg=mk('div','comparison-empty','目前沒有兩間都已確認且結果不同的欄位。請先補入價格、坪數及屋況等資料。');
+      container.append(msg);
+    }
+  }
+  filter.onchange=refresh;
+  refresh();
+  dlg.showModal();
 }
 const css=document.createElement('style');css.textContent=`
+.compare-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.compare-home{background:#f2f7f5;padding:15px;border-radius:13px;min-width:0}
+.compare-home h4{margin:0 0 10px;overflow-wrap:anywhere;font-size:15px}
+.compare-home-score{display:block;font-size:23px;color:#167c74;margin-bottom:5px}
+.compare-meter{height:7px;border-radius:10px;background:#d9e5e0;overflow:hidden;margin-top:10px}
+.compare-meter span{display:block;height:100%;background:#167d74}
+.comparison-controls{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:16px 0;flex-wrap:wrap}
+.difference-toggle{font-size:14px;font-weight:650;display:flex;align-items:center;gap:7px}
+.difference-toggle input{accent-color:#127d74;width:17px;height:17px}
+.compare-groups{display:grid;gap:18px}
+.compare-group{border:1px solid #e1e9e6;border-radius:12px;overflow:hidden}
+.compare-group h4{margin:0;padding:12px 14px;background:#f1f6f4;font-size:15px}
+.compare-group .comparison-table{margin:0}
+.compare-group .has-difference{background:#e9f6f1}
+.compare-group .needs-data{background:#fdfcf9}
+.compare-group .missing-value{color:#a27a49}
+.comparison-empty{padding:22px;border:1px dashed #c7d6cf;border-radius:12px;color:#647c75;font-size:14px}
+
 .compare-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;background:#eaf4f0;border:1px solid #b7dcd1;padding:12px 16px;border-radius:13px;margin-bottom:15px}
 .compare-checkbox{font-size:12px;color:#426169;display:inline-flex;align-items:center;gap:5px;margin-left:auto}
 .compare-checkbox input{accent-color:#127d74;width:17px;height:17px}
