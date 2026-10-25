@@ -70,8 +70,7 @@ function renderComparison(){
   document.getElementById('compare-count').textContent='已選 '+count+' / 2 間房屋';
   document.getElementById('compare-open').disabled=count!==2;
   for(const card of document.querySelectorAll('.property')){
-    const title=card.querySelector('h3')?.textContent;
-    const record=items.find(x=>x.title===title);if(!record)continue;
+    const record=items.find(x=>x.id===card.dataset.propertyId);if(!record)continue;
     const foot=card.querySelector('.foot');
     if(!foot||foot.querySelector('.detail-btn'))continue;
     const detail=mk('button','btn small detail-btn','詳細資料');
