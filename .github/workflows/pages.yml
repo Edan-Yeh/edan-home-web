@@ -5,6 +5,7 @@ on:
     paths:
       - index.html
       - enhancements.js
+      - auth.js
       - .github/workflows/pages.yml
   workflow_dispatch:
 permissions:
