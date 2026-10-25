@@ -94,7 +94,8 @@
  async function afterUnlock(){
   if(!window.homeAuth?.authorized||suspended)return;
   const local=localStorage.getItem(KEY);
-  if(local&&!currentVersion)await afterPersist();
+  // Never seed an empty vault into the cloud; an existing desktop may still hold real data.
+  if(local&&!currentVersion&&Array.isArray(window.homeVaultRows?.())&&window.homeVaultRows().length>0)await afterPersist();
  }
  async function pushExplicit(){
   if(!window.homeAuth?.authorized)return alert('請先登入');
