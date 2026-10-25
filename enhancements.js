@@ -400,11 +400,6 @@ editorDialog.addEventListener('close',()=>{
  editorDirty=false;
  dirtyHint.textContent='';
 });
-editorForm.addEventListener('submit',()=>{
- /* The existing handler closes the dialog only after a successful save. */
- editorDirty=false;
- dirtyHint.textContent='';
-});
 
 const oldRender=render;render=function(){oldRender();renderComparison()};
 
