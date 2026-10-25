@@ -10,16 +10,42 @@
 .account-gate #account-message{margin:8px 0 0;color:#4b6d64;font-size:13px;line-height:1.6}
 .account-gate #account-message.account-error{color:#a44242}
 .account-gate .auth-card h2{margin:16px 0 6px}
+.account-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}
+.account-tabs .btn{width:100%}
+.account-help{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.account-help button{background:transparent;border:0;color:#14786f;text-decoration:underline;cursor:pointer;padding:6px 0;font-size:13px}
+#account-recovery-form{display:grid;gap:12px;margin:18px 0}
+#account-recovery-form.hidden{display:none!important}
+#account-signup.hidden{display:none!important}
 </style></head><body>
 <header><div><h1>⌂ Edan Home Tracker</h1><small>我的買房決策工作台</small></div><div class="top-actions"><small id="storage-status">私人本機資料 · 加密保存</small><span id="account-email" style="font-size:12px;color:#d5e9e3"></span><button class="btn ghost hidden" id="account-logout">登出帳號</button><button class="btn ghost hidden" id="lock-btn">鎖定</button></div></header>
 <section id="account-gate" class="account-gate"><div class="auth-card">
 <div class="auth-mark">✓</div><h2>帳號登入驗證</h2>
-<p class="muted">使用 English Coach 的既有 Email 帳號登入。房屋網站另有獨立授權，其他學習平台使用者無法自動取得權限。</p>
+<p class="muted">可使用 English Coach 的既有帳號，或建立新帳號並完成信箱驗證。Home Tracker 另有獨立授權，註冊成功不代表獲得房屋網站權限。</p>
+<div class="account-tabs" role="group" aria-label="登入與註冊">
+<button class="btn primary" type="button" id="account-show-login">登入</button>
+<button class="btn" type="button" id="account-show-signup">註冊</button>
+</div>
 <form id="account-login">
 <label class="field">Email<input name="email" type="email" autocomplete="username" required placeholder="your@email.com"></label>
 <label class="field">帳號密碼<input name="password" type="password" autocomplete="current-password" required placeholder="English Coach 帳號密碼"></label>
 <button class="btn primary" type="submit">登入並驗證身分</button>
-</form><button id="account-reset" type="button">忘記帳號密碼？</button>
+</form>
+<form id="account-signup" class="hidden">
+<label class="field">Email<input name="email" type="email" autocomplete="email" required placeholder="your@email.com"></label>
+<label class="field">建立密碼（至少 8 字元）<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+<label class="field">確認密碼<input name="confirm" type="password" autocomplete="new-password" minlength="8" required></label>
+<button class="btn primary" type="submit">建立帳號並寄送驗證信</button>
+</form>
+<div id="account-recovery-form" class="hidden">
+<label class="field">新密碼（至少 8 字元）<input id="account-new-password" type="password" autocomplete="new-password" minlength="8"></label>
+<label class="field">確認新密碼<input id="account-confirm-password" type="password" autocomplete="new-password" minlength="8"></label>
+<button id="account-update-password" class="btn primary" type="button">確認更新密碼</button>
+</div>
+<div class="account-help">
+<button id="account-reset" type="button">忘記帳號密碼？</button>
+<button id="account-resend" type="button">重新寄送驗證信</button>
+</div>
 <p id="account-message" role="status">正在確認登入狀態…</p><div id="account-uid-wrap" class="hidden" style="font-size:12px;color:#426862;overflow-wrap:anywhere;background:#ecf4f1;padding:10px;border-radius:10px">帳號 UID（提供管理員授權）：<strong id="account-uid"></strong><button type="button" class="btn small" id="account-copy-uid" style="margin-top:8px">複製 UID</button></div>
 <p class="warn">通過帳號驗證後，仍需使用原本的本機解密密碼。房屋資料不會上傳 Supabase；此網站的 HTML 仍是公開的。</p>
 </div></section>
@@ -67,4 +93,4 @@ $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').val
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import-btn').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>2_000_000)return alert('備份檔不能超過 2MB');try{const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');if(!confirm('匯入將取代目前 '+items.length+' 筆紀錄，確認嗎？'))return;items=rows;await persist();render();alert('匯入完成')}catch{alert('無法匯入：檔案格式不正確')}};refreshAuth();
-</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.1"></script></body></html>
+</script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.8"></script></body></html>
