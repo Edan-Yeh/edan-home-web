@@ -11,9 +11,9 @@
 <input type="file" accept=".json,application/json" id="import-file" hidden></main>
 <dialog id="editor"><div class="modal-head"><h3 id="modal-title">新增房屋</h3><button class="btn small" type="button" id="close-modal" aria-label="關閉">✕</button></div><form id="property-form"><div class="form-grid">
 <label class="field wide">案名／地址 *<input name="title" maxlength="120" required placeholder="例如：南京三民站兩房電梯"></label>
-<label class="field">總價（萬元）<input type="number" name="price" min="0" step="1" placeholder="1680"></label>
-<label class="field">主建物（坪）<input type="number" name="area" min="0" step=".01" placeholder="18.5"></label>
-<label class="field">房數<input type="number" name="rooms" min="0" step="1" value="2"></label>
+<label class="field">總價（萬元）<input type="number" name="price" min="0" step="1" placeholder="例：1680（尚未填寫）"></label>
+<label class="field">主建物（坪）<input type="number" name="area" min="0" step=".01" placeholder="例：18.5（尚未填寫）"></label>
+<label class="field">房數<input type="number" name="rooms" min="0" step="1" placeholder="例：2（尚未填寫）"></label>
 <label class="field">看屋狀態<select name="status"><option value="unseen">待看屋</option><option value="viewed">已看屋</option><option value="revisit">值得複看</option><option value="offered">已出價</option><option value="excluded">已排除</option></select></label>
 <label class="field">是否有電梯<select name="elevator"><option value="">尚未確認</option><option value="yes">有電梯</option><option value="no">無電梯</option></select></label><label class="field">格局是否原始合法<select name="layout"><option value="">尚未確認</option><option value="yes">確認合法／未變更</option><option value="no">有疑慮</option></select></label><label class="field">漏水／潮濕<select name="humidity"><option value="">尚未確認</option><option value="no">無明顯問題</option><option value="yes">有疑慮</option></select></label><label class="field">噪音<select name="noise"><option value="">尚未確認</option><option value="no">無明顯問題</option><option value="yes">有疑慮</option></select></label><label class="field wide">房屋網址<input type="url" name="url" maxlength="1000" placeholder="https://buy.yungching.com.tw/house/..."></label>
 <label class="field wide">通勤／交通備註<input name="commute" maxlength="250" placeholder="到元大證券基隆孝二分公司預估..."></label>
@@ -47,4 +47,4 @@ $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').val
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import-btn').onclick=()=>$('import-file').click();$('import-file').onchange=async e=>{const file=e.target.files[0];e.target.value='';if(!file)return;if(file.size>2_000_000)return alert('備份檔不能超過 2MB');try{const obj=JSON.parse(await file.text()),rows=Array.isArray(obj)?obj:obj.properties;if(!Array.isArray(rows)||rows.length>2000||!rows.every(validItem))throw Error('invalid');if(!confirm('匯入將取代目前 '+items.length+' 筆紀錄，確認嗎？'))return;items=rows;await persist();render();alert('匯入完成')}catch{alert('無法匯入：檔案格式不正確')}};refreshAuth();
-</script><script src="enhancements.js?v=1.5"></script></body></html>
+</script><script src="enhancements.js?v=1.6"></script></body></html>
