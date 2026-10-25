@@ -131,7 +131,8 @@ $('import-file').onchange=async e=>{
  }catch{alert('匯入失敗：資料格式不正確或瀏覽器儲存失敗，既有紀錄未修改。')}
 };refreshAuth();
 window.secretAccessible=()=>!!secret;
+window.homeVaultRows=()=>secret?items:null;
 window.lockLocalVault=()=>document.getElementById('lock-btn').click();
 document.getElementById('cloud-upload-btn').addEventListener('click',()=>window.homeCloud?.pushExplicit());
 document.getElementById('cloud-download-btn').addEventListener('click',()=>window.homeCloud?.pullExplicit());
-</script><script src="sync.js?v=2.0"></script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.9"></script></body></html>
+</script><script src="sync.js?v=2.1"></script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=1.9"></script></body></html>
