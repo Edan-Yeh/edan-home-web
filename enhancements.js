@@ -14,6 +14,23 @@ const scoreRules = [
   ['無潮濕漏水疑慮','humidity',10, item => item.humidity==='no'],
   ['無明顯噪音','noise',5, item => item.noise==='no']
 ];
+const priorityChecks=[
+ ['price','總價','先向仲介確認目前開價'],
+ ['area','主建物坪數','確認權狀主建物，不含附屬建物'],
+ ['rooms','房數','確認實際及合法房間數'],
+ ['elevator','電梯','確認大樓有無電梯'],
+ ['layout','合法格局','確認有無二次施工或違規隔間'],
+ ['humidity','漏水／潮濕','確認壁癌、管線滲漏及潮濕'],
+ ['noise','噪音','確認道路、鄰戶和樓上噪音'],
+ ['commute','基隆通勤','記錄尖峰門到門時間至孝二路分公司']
+];
+function missingChecks(item){
+ return priorityChecks.filter(([key])=>item[key]===null||item[key]===undefined||String(item[key]).trim()==='');
+}
+function editFromDialog(item,dialog){
+ dialog.close();
+ openEditor(item);
+}
 const ratingWeight = 5; // 4 ratings × 5 points = 20; total 100
 function getAssessment(item) {
   let points=0,maximum=0;
@@ -55,6 +72,18 @@ function showDetails(item){
   const heading=mk('h4','','條件評估與評分明細');body.append(heading);
   const list=mk('div','score-breakdown');
   for(const d of evaluation.details){const line=mk('div','score-row'),name=mk('span','',d.label),val=mk('strong','',d.known?d.earned+' / '+d.weight:'待確認');line.append(name,val);list.append(line)}
+  const missing=missingChecks(item);
+  const checklist=mk('section','missing-box');
+  checklist.append(mk('h4','','待補資料（'+missing.length+' 項）'));
+  if(missing.length){
+    const ul=mk('ul','missing-list');
+    missing.forEach(([,label,tip])=>{const li=mk('li','');li.append(mk('strong','',label+'：'),document.createTextNode(tip));ul.append(li)});
+    checklist.append(ul);
+    const jump=mk('button','btn primary small','立即補齊');
+    jump.onclick=()=>editFromDialog(item,dlg);
+    checklist.append(jump);
+  }else checklist.append(mk('p','muted','基本條件已填妥，可進一步確認物件真實性。'));
+  body.append(checklist);
   body.append(list, mk('h4','','看屋備註'));
   body.append(mk('p','full-note',item.note||'尚未填寫看屋備註'));
   if(item.url&&safeUrl(item.url)){const a=mk('a','detail-link','開啟原始物件網址 ↗');a.href=safeUrl(item.url);a.target='_blank';a.rel='noopener noreferrer';body.append(a)}
@@ -112,10 +141,33 @@ function showComparison(){
     const filled=mk('span','');
     filled.style.width=(100*known/assessment[index].details.length)+'%';
     meter.append(filled);panel.append(meter);
+    const pending=missingChecks(home);
+    const pendingText=mk('div','muted','待補 '+pending.length+' 項基本資料');
+    panel.append(pendingText);
+    const editBtn=mk('button','btn small','編輯這間');
+    editBtn.type='button';
+    editBtn.onclick=()=>editFromDialog(home,dlg);
+    panel.append(editBtn);
     summary.append(panel);
   });
   body.append(summary);
   const guidance=mk('p','muted','分數只計入已填條件。待確認不代表不符合，也不能直接據此排名。');
+  const pendingBox=mk('details','missing-box');
+  const combinedMissing=chosen.map(item=>({item,missing:missingChecks(item)}));
+  const missingTotal=combinedMissing.reduce((sum,x)=>sum+x.missing.length,0);
+  const pendingTitle=mk('summary','', '待補資料清單 · '+missingTotal+' 項（點擊展開）');
+  pendingBox.append(pendingTitle);
+  for(const {item,missing} of combinedMissing){
+    const part=mk('section','pending-home');
+    part.append(mk('strong','',item.title+' · '+missing.length+' 項'));
+    if(missing.length){
+      const list=mk('ul','missing-list');
+      for(const [,label,tip] of missing)list.append(mk('li','',label+'：'+tip));
+      part.append(list);
+    }else part.append(mk('p','muted','基本評估欄位已填妥'));
+    pendingBox.append(part);
+  }
+  body.append(pendingBox);
   body.append(guidance);
   const controls=mk('div','comparison-controls');
   const filterLabel=mk('label','difference-toggle');
@@ -185,6 +237,12 @@ function showComparison(){
   dlg.showModal();
 }
 const css=document.createElement('style');css.textContent=`
+.missing-box{background:#fafbf9;border:1px solid #dfeae3;border-radius:12px;padding:15px;margin:14px 0}
+.missing-box h4{margin:0 0 10px}.missing-box summary{cursor:pointer;font-weight:700;color:#356b60}
+.missing-list{margin:10px 0;padding-left:20px;line-height:1.85;color:#4f6963;font-size:13px}
+.pending-home{margin-top:14px;padding-top:12px;border-top:1px solid #e2eae4}
+.compare-home .btn{margin-top:11px}
+
 .compare-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
 .compare-home{background:#f2f7f5;padding:15px;border-radius:13px;min-width:0}
 .compare-home h4{margin:0 0 10px;overflow-wrap:anywhere;font-size:15px}
