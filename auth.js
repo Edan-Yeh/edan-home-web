@@ -1,6 +1,13 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.0/+esm';
 const URL='https://uwvtcqdsmuldswqbxtjf.supabase.co';
 const PUBLISHABLE_KEY='sb_publishable_XfMTL7LnvCoTrJFtgNF0mw_qNxAiwAW';
+// Remove any credentials left in URL by an earlier browser-native GET form submission.
+// This cannot reverse historic exposure; affected passwords must be changed.
+const currentUrl=new URL(location.href);
+if(['password','confirm'].some(name=>currentUrl.searchParams.has(name))){
+ for(const key of ['password','confirm','email'])currentUrl.searchParams.delete(key);
+ history.replaceState(null,'',currentUrl.pathname+currentUrl.search+currentUrl.hash);
+}
 const client=createClient(URL,PUBLISHABLE_KEY,{
  auth:{autoRefreshToken:true,persistSession:true,detectSessionInUrl:true,flowType:'pkce'}
 });
@@ -147,5 +154,7 @@ client.auth.onAuthStateChange((event)=>{
   queueMicrotask(()=>{validate().catch(()=>deny('登入驗證失敗，請重新整理。'))});
  }
 });
+// Only permit submitting credentials after the JavaScript authentication handlers are installed.
+for(const form of [loginForm,signupForm])form.querySelector('button[type="submit"]').disabled=false;
 showMode('login');
 validate().catch(()=>deny('登入驗證暫時無法使用，請重新整理。'));
