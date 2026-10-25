@@ -237,6 +237,23 @@ function showComparison(){
   dlg.showModal();
 }
 const css=document.createElement('style');css.textContent=`
+.form-grid{display:block!important;padding:0!important}
+.form-section,.extra-ratings{display:block!important;padding:16px 24px;border-bottom:1px solid #e5ece9}
+.form-section h4,.extra-ratings h4{font-size:15px;margin:0 0 13px;color:#24444a}
+.form-section-grid,.extra-ratings{--cols:2}
+.form-section-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.form-section-grid .wide{grid-column:1/-1}
+.form-section-grid label{min-width:0}
+.extra-ratings{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.extra-ratings h4,.extra-ratings small{grid-column:1/-1}
+.editor-completion{padding:14px 24px;background:#f1f7f4;display:grid;grid-template-columns:1fr auto;gap:7px 12px;font-size:13px}
+.editor-completion strong{color:#176e65}
+.editor-meter{grid-column:1/-1;height:7px;background:#d9e7df;overflow:hidden;border-radius:20px}
+.editor-meter span{display:block;height:100%;background:#18867a;transition:width .2s}
+.editor-missing{grid-column:1/-1;color:#637872;line-height:1.6}
+.editor-dirty{grid-column:1/-1;color:#a3663f;font-weight:650}
+@media(max-width:650px){.form-section-grid,.extra-ratings{grid-template-columns:1fr!important}.form-section,.extra-ratings{padding:15px 17px}}
+
 .missing-box{background:#fafbf9;border:1px solid #dfeae3;border-radius:12px;padding:15px;margin:14px 0}
 .missing-box h4{margin:0 0 10px}.missing-box summary{cursor:pointer;font-weight:700;color:#356b60}
 .missing-list{margin:10px 0;padding-left:20px;line-height:1.85;color:#4f6963;font-size:13px}
@@ -303,6 +320,92 @@ form.onsubmit=async function(e){
  const saved=items.find(i=>i.id===editing)||items.find(i=>i.updated===items.map(v=>v.updated).sort().at(-1));
  if(saved){Object.assign(saved,scores);await persist();render()}
 };
+
+/* v1.6 editor UX. Do not store plaintext draft in browser storage. */
+const editorDialog=document.getElementById('editor');
+const editorForm=document.getElementById('property-form');
+const formGrid=editorForm.querySelector('.form-grid');
+const formSection=(title,fields)=>{
+  const section=mk('section','form-section');
+  section.append(mk('h4','',title));
+  const inner=mk('div','form-section-grid');
+  for(const name of fields){
+    const control=editorForm.elements.namedItem(name);
+    const label=control?.closest('label');
+    if(label)inner.append(label);
+  }
+  section.append(inner);return section;
+};
+const groupDefinitions=[
+ ['基本資訊',['title','price','area','rooms','status','url']],
+ ['格局與屋況',['elevator','layout','humidity','noise']],
+ ['交通與通勤',['commute']],
+ ['看屋備註',['note']]
+];
+const originalRatings=document.querySelector('.extra-ratings');
+const sectionNodes=groupDefinitions.map(([title,names])=>formSection(title,names));
+if(originalRatings) sectionNodes.push(originalRatings);
+formGrid.replaceChildren(...sectionNodes);
+const completionBanner=mk('div','editor-completion');
+completionBanner.setAttribute('aria-live','polite');
+formGrid.before(completionBanner);
+const completionText=mk('span','','資料完整度');
+const completionTrack=mk('div','editor-meter');
+const completionFill=mk('span','');
+completionTrack.append(completionFill);
+const completionInfo=mk('strong','','0 / 8');
+const missingText=mk('div','editor-missing','');
+completionBanner.append(completionText,completionInfo,completionTrack,missingText);
+function updateEditorCompletion(){
+  const formObj={};
+  for(const [key] of priorityChecks)formObj[key]=editorForm.elements.namedItem(key)?.value||'';
+  const missing=missingChecks(formObj);
+  const filled=priorityChecks.length-missing.length;
+  completionInfo.textContent=filled+' / '+priorityChecks.length+' 項';
+  completionFill.style.width=(filled/priorityChecks.length*100)+'%';
+  missingText.textContent=missing.length?'待補：'+missing.map(([,label])=>label).join('、'):'基本評估資料已填齊（仍需核對來源）';
+}
+const dirtyHint=mk('span','editor-dirty','');
+completionBanner.append(dirtyHint);
+let editorDirty=false;
+const previousOpenEditor=openEditor;
+openEditor=function(item){
+ previousOpenEditor(item);
+ editorDirty=false;
+ dirtyHint.textContent='';
+ updateEditorCompletion();
+};
+editorForm.addEventListener('input',()=>{
+ editorDirty=true;
+ dirtyHint.textContent='● 尚未儲存的修改';
+ updateEditorCompletion();
+});
+editorForm.addEventListener('change',()=>{
+ editorDirty=true;
+ dirtyHint.textContent='● 尚未儲存的修改';
+ updateEditorCompletion();
+});
+function confirmDiscard(){
+ return !editorDirty||confirm('尚有未儲存的修改，確定放棄嗎？');
+}
+for(const id of ['close-modal','cancel-modal']){
+ document.getElementById(id).addEventListener('click',event=>{
+  if(!confirmDiscard()){event.preventDefault();event.stopImmediatePropagation();}
+ },true);
+}
+editorDialog.addEventListener('cancel',event=>{
+ if(!confirmDiscard())event.preventDefault();
+});
+editorDialog.addEventListener('close',()=>{
+ editorDirty=false;
+ dirtyHint.textContent='';
+});
+editorForm.addEventListener('submit',()=>{
+ /* The existing handler closes the dialog only after a successful save. */
+ editorDirty=false;
+ dirtyHint.textContent='';
+});
+
 const oldRender=render;render=function(){oldRender();renderComparison()};
 
 /* Optional starter records from previously shared listing links.
