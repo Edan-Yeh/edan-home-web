@@ -6,6 +6,7 @@ on:
       - index.html
       - enhancements.js
       - auth.js
+      - sync.js
       - .github/workflows/pages.yml
   workflow_dispatch:
 permissions:
