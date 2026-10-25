@@ -38,8 +38,9 @@ function showMode(mode){
  document.querySelector('.account-tabs').classList.toggle('hidden',mode==='recovery');
  document.querySelector('.account-help').classList.toggle('hidden',mode==='recovery');
 }
-function deny(text){authorized=false;lockLocal();gate.classList.remove('hidden');logout.classList.add('hidden');notify(text,true)}
+function deny(text){window.homeAuth=null;authorized=false;lockLocal();gate.classList.remove('hidden');logout.classList.add('hidden');notify(text,true)}
 function enter(user){
+ window.homeAuth={client,userId:user.id,authorized:true};
  uidWrap.classList.add('hidden');authorized=true;gate.classList.add('hidden');
  logout.classList.remove('hidden');
  document.getElementById('account-email').textContent=user.email||'已驗證帳號';
@@ -137,6 +138,7 @@ document.getElementById('account-update-password').addEventListener('click',asyn
  });
 });
 logout.addEventListener('click',async()=>{
+ window.homeAuth=null;
  checkVersion++;
  lockLocal();gate.classList.remove('hidden');logout.classList.add('hidden');
  const {error}=await client.auth.signOut();
