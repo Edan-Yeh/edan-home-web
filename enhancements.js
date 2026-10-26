@@ -337,7 +337,7 @@ const formSection=(title,fields)=>{
   section.append(inner);return section;
 };
 const groupDefinitions=[
- ['基本資訊',['title','price','area','rooms','status','url']],
+ ['基本資訊',['title','price','area','rooms','listingStatus','status','url']],
  ['格局與屋況',['elevator','layout','humidity','noise']],
  ['交通與通勤',['commute']],
  ['看屋備註',['note']]
