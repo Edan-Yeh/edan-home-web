@@ -17,6 +17,7 @@
 #account-recovery-form{display:grid;gap:12px;margin:18px 0}
 #account-recovery-form.hidden{display:none!important}
 #account-signup.hidden{display:none!important}
+.settings-dialog{width:min(540px,calc(100% - 28px))}.settings-body{padding:16px 22px;max-height:70vh;overflow:auto;display:grid;gap:15px}.settings-body section{padding-bottom:16px;border-bottom:1px solid #e5ecea}.settings-body section:last-child{border:0}.settings-body h4{margin:0 0 8px}.settings-body p{line-height:1.65}.settings-body .actions{margin-top:12px}
 </style></head><body>
 <header><div><h1>⌂ Edan Home Tracker</h1><small>我的買房決策工作台</small></div><div class="top-actions"><small id="storage-status">私人本機資料 · 加密保存</small><span id="account-email" style="font-size:12px;color:#d5e9e3"></span><button class="btn ghost hidden" id="account-logout">登出帳號</button><button class="btn ghost hidden" id="lock-btn">鎖定</button></div></header>
 <section id="account-gate" class="account-gate"><div class="auth-card">
@@ -50,11 +51,18 @@
 <p class="warn">通過帳號驗證後，仍需使用原本的本機解密密碼。房屋資料不會上傳 Supabase；此網站的 HTML 仍是公開的。</p>
 </div></section>
 <section class="auth" id="auth-screen"><div class="auth-card"><div class="auth-mark">⌂</div><h2 id="auth-title">建立本機密碼</h2><p class="muted" id="auth-desc">第一次使用，設定至少 8 個字元的密碼，加密儲存在這台裝置上的看屋資料。</p><form id="auth-form"><label class="field">密碼<input type="password" id="password" minlength="8" required autocomplete="current-password" placeholder="輸入密碼"></label><label class="field" id="confirm-field">確認密碼（首次建立資料時）<input type="password" id="confirm" minlength="8" autocomplete="new-password" placeholder="再次輸入密碼"></label><div class="error hidden" id="auth-error"></div><button type="submit" class="btn primary" id="auth-submit">建立並進入</button></form><p class="warn">這是本機加密解鎖，不是 GitHub／雲端帳號登入。密碼遺失無法復原；清除瀏覽器資料也會失去紀錄。請定期匯出備份，且不要在共用裝置使用。</p></div></section>
-<main class="hidden" id="dashboard"><div class="headline"><div><h2>我的房屋清單</h2><div class="muted">集中管理收藏、看屋備註與決策狀態</div></div><div class="actions"><button class="btn" id="import-btn">合併匯入 JSON</button><button class="btn" id="recent-import-btn" type="button">＋ 補入近期追蹤</button><button class="btn" id="export-btn">匯出備份</button><button class="btn" id="cloud-upload-btn" type="button">↑ 上傳本機</button><button class="btn" id="cloud-download-btn" type="button">↓ 下載雲端</button><button class="btn primary" id="add-btn">＋ 新增房屋</button></div></div>
+<main class="hidden" id="dashboard"><div class="headline"><div><h2>我的房屋清單</h2><div class="muted">集中管理收藏、看屋備註與決策狀態</div></div><div class="actions"><button class="btn primary" id="add-btn">＋ 新增房屋</button><button class="btn" id="settings-open" type="button">⚙ 設定</button></div></div>
 <div class="stats"><div class="stat"><span>全部物件</span><strong id="count-all">0</strong></div><div class="stat"><span>待看屋</span><strong id="count-unseen">0</strong></div><div class="stat"><span>已看屋</span><strong id="count-viewed">0</strong></div><div class="stat"><span>值得複看</span><strong id="count-revisit">0</strong></div></div>
 <div class="toolbar"><input id="search" placeholder="搜尋地址、案名、備註…"><select id="listing-filter" aria-label="追蹤分類"><option value="">全部追蹤分類</option><option value="candidate">候選物件</option><option value="verify">待查證</option><option value="excluded">已排除</option><option value="delisted">已下架</option></select><select id="status-filter"><option value="">全部看屋狀態</option><option value="unseen">待看屋</option><option value="viewed">已看屋</option><option value="revisit">值得複看</option><option value="offered">已出價</option><option value="excluded">已排除</option></select><select id="sort"><option value="newest">最近更新</option><option value="priceAsc">總價低到高</option><option value="priceDesc">總價高到低</option></select><select id="budget-filter" aria-label="預算篩選"><option value="">不限總價</option><option value="1700">1700 萬以內</option><option value="2000">2000 萬以內</option></select><select id="criteria-filter" aria-label="條件篩選"><option value="">全部物件</option><option value="pass">符合基本條件</option><option value="review">需補資料或不符合</option></select><div class="result-hint" id="result-hint"></div></div>
 <div id="cloud-status" role="status" class="notice">雲端同步會將 AES-GCM 加密資料儲存至授權帳號，不上傳明文筆記。</div><div class="cards" id="cards"></div><div class="notice">資料僅儲存在目前瀏覽器，使用 AES-GCM 加密；不會自動跨裝置同步。匯出 JSON 為未加密備份，請妥善保管。公開頁面不包含你的看屋紀錄。</div>
 <input type="file" accept=".json,application/json" id="import-file" hidden></main>
+<dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+<div class="modal-head"><h3 id="settings-title">設定與資料管理</h3><button class="btn small" type="button" id="settings-close" aria-label="關閉設定">✕</button></div>
+<div class="settings-body">
+<section><h4>備份與匯入</h4><p class="muted">匯出未加密 JSON 備份；合併匯入不覆蓋現有看屋狀態與個人筆記。</p><div class="actions"><button class="btn" id="import-btn" type="button">合併匯入 JSON</button><button class="btn" id="export-btn" type="button">匯出備份</button></div></section>
+<section><h4>加密雲端同步</h4><p class="muted">資料以原本的房屋密碼加密；只有出現同步問題時才需要手動操作。</p><div class="actions"><button class="btn" id="cloud-upload-btn" type="button">↑ 上傳本機</button><button class="btn" id="cloud-download-btn" type="button">↓ 下載雲端</button></div></section>
+<section><h4>資料安全</h4><p class="muted">請定期備份。匯出的 JSON 不加密，切勿公開分享；若手機與電腦同時修改，請先核對同步狀態。</p></section>
+</div></dialog>
 <dialog id="editor"><div class="modal-head"><h3 id="modal-title">新增房屋</h3><button class="btn small" type="button" id="close-modal" aria-label="關閉">✕</button></div><form id="property-form"><div class="form-grid">
 <label class="field wide">案名／地址 *<input name="title" maxlength="120" required placeholder="例如：南京三民站兩房電梯"></label>
 <label class="field">總價（萬元）<input type="number" name="price" min="0" step="1" placeholder="例：1680（尚未填寫）"></label>
@@ -93,27 +101,6 @@ function refreshAuth(){const has=!!localStorage.getItem(KEY);$('auth-title').tex
 $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').value;let has=!!localStorage.getItem(KEY);$('auth-error').classList.add('hidden');if(pwd.length<8)return fail('密碼至少需要 8 個字元');$('auth-submit').disabled=true;try{await window.homeCloud?.prepareUnlock(pwd,has);has=!!localStorage.getItem(KEY);if(has){const obj=JSON.parse(localStorage.getItem(KEY));if(obj.v!==1)throw Error('Unsupported vault');const key=await derive(pwd,bytes(obj.salt));const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(obj.iv)},key,bytes(obj.data));const rows=JSON.parse(decoder.decode(plain));if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid vault');items=rows;secret=key}else{if(pwd!==$('confirm').value)throw Error('兩次密碼不一致');const salt=crypto.getRandomValues(new Uint8Array(16));secret=await derive(pwd,salt);items=[];localStorage.setItem(KEY,await encrypt(items,secret,salt))}$('auth-screen').classList.add('hidden');$('dashboard').classList.remove('hidden');$('lock-btn').classList.remove('hidden');$('password').value='';$('confirm').value='';render();window.homeCloud?.afterUnlock().catch(()=>{})}catch(err){fail('無法解鎖：密碼不正確或資料已損壞。')}finally{$('auth-submit').disabled=false}};
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-// Reference listings verified from source pages; not a claim of live stock or condition.
-const RECENT_TRACKED=[
- {id:'7326299',title:'賓士庭院管理二房｜賓士庭園',price:'1998',area:'16.40',rooms:'2',url:'https://buy.yungching.com.tw/house/7326299',listingStatus:'verify'},
- {id:'7401152',title:'近萬隆站電梯兩房｜萬美大廈',price:'1588',area:'23.60',rooms:'2',url:'https://buy.yungching.com.tw/house/7401152',listingStatus:'verify'}
-];
-async function importRecent(){
- const candidates=RECENT_TRACKED.map(x=>({
-  id:crypto.randomUUID(),title:x.title,url:x.url,price:x.price,area:x.area,rooms:x.rooms,
-  listingStatus:x.listingStatus,status:'unseen',elevator:'',layout:'',humidity:'',noise:'',
-  commute:'',note:'刊登參考資訊，尚須確認仍在售、合法格局、屋況及尖峰通勤；來源物件編號 '+x.id,
-  updated:new Date().toISOString()
- }));
- const incoming=candidates.filter(x=>!items.some(existing=>listingKey(existing)===listingKey(x)));
- if(!incoming.length){alert('這批近期追蹤物件已經在清單中。');return}
- if(!confirm('補入 '+incoming.length+' 間已查到原始刊登頁的待查證物件？\n不會取代現有房屋，也不會改動人工排除紀錄。'))return;
- const previous=items;items=[...items,...incoming];
- try{await persist();render();alert('新增 '+incoming.length+' 間待查證物件。請確認資料來源及售況。')}
- catch{items=previous;render();alert('匯入失敗，原資料未修改。')}
-}
-document.getElementById('recent-import-btn').onclick=importRecent;
-
 function listingKey(item){
  const link=safeUrl(item.url||'');
  if(link){const found=new URL(link).pathname.match(/\/house\/(\d+)/);if(found)return 'yungching:'+found[1];return link}
@@ -154,6 +141,8 @@ $('import-file').onchange=async e=>{
   render();alert('匯入完成：新增 '+added+' 筆、合併 '+merged+' 筆。原看屋狀態及自填筆記均保留。')
  }catch{alert('匯入失敗：資料格式不正確或瀏覽器儲存失敗，既有紀錄未修改。')}
 };refreshAuth();
+$('settings-open').addEventListener('click',()=>$('settings-dialog').showModal());
+$('settings-close').addEventListener('click',()=>$('settings-dialog').close());
 window.secretAccessible=()=>!!secret;
 window.homeVaultRows=()=>secret?items:null;
 window.lockLocalVault=()=>document.getElementById('lock-btn').click();
