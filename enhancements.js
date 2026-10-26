@@ -22,7 +22,7 @@ const priorityChecks=[
  ['layout','合法格局','確認有無二次施工或違規隔間'],
  ['humidity','漏水／潮濕','確認壁癌、管線滲漏及潮濕'],
  ['noise','噪音','確認道路、鄰戶和樓上噪音'],
- ['commute','基隆通勤','記錄尖峰門到門時間至孝二路分公司']
+ ['commuteMinutes','基隆通勤分鐘數','記錄尖峰至元大證券基隆孝二分公司入口的門到門分鐘數']
 ];
 function missingChecks(item){
  return priorityChecks.filter(([key])=>item[key]===null||item[key]===undefined||String(item[key]).trim()==='');
@@ -66,7 +66,7 @@ function showDetails(item){
   addLine(grid,'主建坪數',item.area?item.area+' 坪':'');
   addLine(grid,'房數',item.rooms?item.rooms+' 房':'');
   addLine(grid,'看屋狀態',labels[item.status]||'待確認');
-  addLine(grid,'通勤資訊',item.commute);
+  addLine(grid,'基隆尖峰門到門',commuteLabel(item));addLine(grid,'通勤資訊',item.commute);
   addLine(grid,'更新時間',item.updated?new Date(item.updated).toLocaleString('zh-TW'):'');
   summary.append(grid);body.append(summary);
   const heading=mk('h4','','條件評估與評分明細');body.append(heading);
@@ -190,6 +190,8 @@ function showComparison(){
       ['噪音',it=>it.noise==='no'?'無明顯問題':it.noise==='yes'?'有疑慮':null]
     ]},
     {title:'基隆通勤',rows:[
+      ['尖峰門到門（分鐘）',it=>it.commuteMinutes?it.commuteMinutes+' 分鐘':null],
+      ['交通方式',it=>({rail:'臺鐵＋轉乘',bus:'國道客運＋轉乘',mixed:'捷運＋臺鐵／客運',other:'其他大眾運輸'}[it.commuteMode]||null)],
       ['交通與通勤備註',it=>it.commute?.trim()||null]
     ]},
     {title:'主觀評價與決策',rows:[
@@ -339,7 +341,7 @@ const formSection=(title,fields)=>{
 const groupDefinitions=[
  ['基本資訊',['title','price','area','rooms','listingStatus','status','url']],
  ['格局與屋況',['elevator','layout','humidity','noise']],
- ['交通與通勤',['commute']],
+ ['交通與通勤',['commuteMinutes','commuteMode','commute']],
  ['看屋備註',['note']]
 ];
 const originalRatings=document.querySelector('.extra-ratings');
