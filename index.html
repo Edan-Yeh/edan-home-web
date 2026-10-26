@@ -78,7 +78,7 @@ async function persist(){if(!secret)throw Error('尚未解鎖');const vault=JSON
 function safeUrl(url){try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
 function el(name,className,text){const n=document.createElement(name);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n}
 function criteria(item){const checks=[['預算 ≤ 2000萬',item.price===''||item.price==null?null:Number(item.price)<=2000],['兩房',item.rooms===''||item.rooms==null?null:Number(item.rooms)>=2],['主建 ≥ 15坪',item.area===''||item.area==null?null:Number(item.area)>=15],['電梯',item.elevator==='yes'?true:item.elevator==='no'?false:null],['格局',item.layout==='yes'?true:item.layout==='no'?false:null],['防潮',item.humidity==='no'?true:item.humidity==='yes'?false:null],['噪音',item.noise==='no'?true:item.noise==='yes'?false:null]];return checks}
-function categoryOf(item){return item.listingStatus|| (item.status==='excluded'?'excluded':'verify')}
+function categoryOf(item){return item.listingStatus==='delisted'?'delisted':item.status==='excluded'?'excluded':(item.listingStatus||'verify')}
 function render(){const q=$('search').value.toLowerCase(),filter=$('status-filter').value,listingFilter=$('listing-filter').value,sort=$('sort').value,budget=$('budget-filter').value,criteriaFilter=$('criteria-filter').value;
 $('count-all').textContent=items.length;$('count-unseen').textContent=items.filter(i=>i.status==='unseen').length;$('count-viewed').textContent=items.filter(i=>i.status==='viewed').length;$('count-revisit').textContent=items.filter(i=>i.status==='revisit').length;
 const shown=items.filter(i=>(!listingFilter||categoryOf(i)===listingFilter)&&(!filter||i.status===filter)&&(!budget||i.price!==''&&i.price!=null&&Number(i.price)<=Number(budget))&&(!criteriaFilter||(criteriaFilter==='pass'?criteria(i).every(([,v])=>v===true):!criteria(i).every(([,v])=>v===true)))&&[i.title,i.note,i.commute].join(' ').toLowerCase().includes(q)).sort((a,b)=>sort==='priceAsc'?(Number(a.price)||Infinity)-(Number(b.price)||Infinity):sort==='priceDesc'?(Number(b.price)||-1)-(Number(a.price)||-1):String(b.updated).localeCompare(String(a.updated)));
@@ -159,4 +159,4 @@ window.homeVaultRows=()=>secret?items:null;
 window.lockLocalVault=()=>document.getElementById('lock-btn').click();
 document.getElementById('cloud-upload-btn').addEventListener('click',()=>window.homeCloud?.pushExplicit());
 document.getElementById('cloud-download-btn').addEventListener('click',()=>window.homeCloud?.pullExplicit());
-</script><script src="sync.js?v=2.1"></script><script src="enhancements.js?v=1.6"></script><script type="module" src="auth.js?v=2.0.1"></script></body></html>
+</script><script src="sync.js?v=2.1"></script><script src="enhancements.js?v=2.2"></script><script type="module" src="auth.js?v=2.0.1"></script></body></html>
