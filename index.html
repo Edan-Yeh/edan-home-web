@@ -61,7 +61,7 @@
 <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
 <div class="modal-head"><h3 id="settings-title">設定與資料管理</h3><button class="btn small" type="button" id="settings-close" aria-label="關閉設定">✕</button></div>
 <div class="settings-body">
-<section><h4>基隆通勤比較基準</h4><p class="muted">終點：元大證券基隆孝二分公司（基隆市仁愛區孝二路86之5號）。輸入平日尖峰「步行＋等車＋轉乘＋到入口」的門到門總時間；不自動推估。</p><div class="baseline-grid"><label class="field">南京三民基準（分鐘）<input type="number" id="baseline-nanjing" min="1" max="300" placeholder="尚未設定"></label><label class="field">行天宮基準（分鐘）<input type="number" id="baseline-xingtian" min="1" max="300" placeholder="尚未設定"></label></div><p class="muted">基準時間只用於比較；請填入實測或完整路線估算值，未填時不顯示快慢差距。</p><button class="btn" type="button" id="baseline-save">儲存通勤基準</button></section><section><h4>備份與匯入</h4><p class="muted">匯出未加密 JSON 備份；合併匯入不覆蓋現有看屋狀態與個人筆記。</p><div class="actions"><button class="btn" id="import-btn" type="button">合併匯入 JSON</button><button class="btn" id="export-btn" type="button">匯出備份</button></div></section>
+<section><h4>基隆通勤比較基準</h4><p class="muted">終點：元大證券基隆孝二分公司（基隆市仁愛區孝二路86之5號）。輸入平日尖峰「步行＋等車＋轉乘＋到入口」的門到門總時間；不自動推估。</p><div class="baseline-grid"><label class="field">南京三民基準（分鐘）<input type="number" id="baseline-nanjing" min="1" max="300" placeholder="尚未設定"></label><label class="field">行天宮基準（分鐘）<input type="number" id="baseline-xingtian" min="1" max="300" placeholder="尚未設定"></label></div><p class="muted">基準時間只用於比較；請填入實測或完整路線估算值，未填時不顯示快慢差距。</p><button class="btn" type="button" id="baseline-save">儲存通勤基準</button></section><section><h4>房屋網址自動清理</h4><p class="muted">登入並解鎖後，每 24 小時檢查一次已支援的永慶物件連結。確認 HTTP 404／410 或其他實際網頁錯誤時，先保留本機加密備份再自動移除。遇到登入限制、反爬封鎖、重新導向或檢查服務失敗則標記待查，不直接當作下架。</p><div class="actions"><button class="btn" id="listing-check-now" type="button">立即檢查失效網址</button><button class="btn" id="listing-restore" type="button">還原上次清理前備份</button></div><p class="muted" id="listing-check-status" role="status">尚未執行網址檢查</p></section><section><h4>備份與匯入</h4><p class="muted">匯出未加密 JSON 備份；合併匯入不覆蓋現有看屋狀態與個人筆記。</p><div class="actions"><button class="btn" id="import-btn" type="button">合併匯入 JSON</button><button class="btn" id="export-btn" type="button">匯出備份</button></div></section>
 <section><h4>加密雲端同步</h4><p class="muted">資料以原本的房屋密碼加密；只有出現同步問題時才需要手動操作。</p><div class="actions"><button class="btn" id="cloud-upload-btn" type="button">↑ 上傳本機</button><button class="btn" id="cloud-download-btn" type="button">↓ 下載雲端</button></div></section>
 <section><h4>資料安全</h4><p class="muted">請定期備份。匯出的 JSON 不加密，切勿公開分享；若手機與電腦同時修改，請先核對同步狀態。</p></section>
 </div></dialog>
@@ -85,6 +85,66 @@ const validItem=x=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.id==='str
 async function derive(password,salt){const raw=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:210000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
 async function encrypt(data,key,salt){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(JSON.stringify(data)));return JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(ct))});}
 async function persist(){if(!secret)throw Error('尚未解鎖');const vault=JSON.parse(localStorage.getItem(KEY));localStorage.setItem(KEY,await encrypt(items,secret,bytes(vault.salt)));window.homeCloud?.afterPersist().catch(()=>{});}
+const CHECK_STATE_KEY='edan-home-url-check-v1';
+const CHECK_BACKUP_KEY='edan-home-url-cleanup-backup-v1';
+let listingCheckBusy=false;
+function listingCheckStatus(message){const node=$('listing-check-status');if(node)node.textContent=message}
+async function restoreUrlCleanupBackup(){
+ if(!secret){alert('請先解鎖房屋資料');return}
+ const raw=localStorage.getItem(CHECK_BACKUP_KEY);if(!raw){alert('沒有可還原的清理前備份。');return}
+ if(!confirm('確定以清理前加密備份覆蓋目前房屋清單？\\n清理後新增或更新的資料會被取代。'))return;
+ try{
+  const v=JSON.parse(raw),decoded=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(v.iv)},secret,bytes(v.data));
+  const rows=JSON.parse(decoder.decode(decoded));
+  if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid backup');
+  const before=items;items=rows;
+  try{await persist();render();listingCheckStatus('已還原清理前的 '+rows.length+' 筆資料。請確認雲端同步狀態。')}
+  catch(e){items=before;throw e}
+ }catch{alert('備份無法還原。請確認目前使用的是原本的房屋解密密碼。')}
+}
+async function checkListingUrls(manual=false){
+ if(listingCheckBusy||!secret||!window.homeAuth?.authorized)return;
+ if(!manual){
+  const last=Number(localStorage.getItem(CHECK_STATE_KEY)||0);
+  if(Number.isFinite(last)&&Date.now()-last<86400000)return;
+ }
+ const rows=items.filter(x=>x.url&&safeUrl(x.url));
+ if(!rows.length){listingCheckStatus('目前沒有可檢查的房屋網址。');return}
+ listingCheckBusy=true;
+ $('listing-check-now').disabled=true;
+ listingCheckStatus('正在檢查 '+rows.length+' 筆房屋網址…');
+ try{
+  const client=window.homeAuth.client;
+  let checks=[];
+  for(let i=0;i<rows.length;i+=25){
+   const batch=rows.slice(i,i+25);
+   const response=await client.functions.invoke('home-listing-status',{body:{urls:batch.map(x=>x.url)}});
+   if(response.error||!Array.isArray(response.data?.checked))throw Error('網址檢查服務無法使用');
+   checks.push(...response.data.checked);
+  }
+  const resultMap=new Map(checks.map(x=>[x.url,x]));
+  const unreadable=rows.filter(x=>resultMap.get(x.url)?.state==='unreadable');
+  const blocked=checks.filter(x=>x.state==='blocked'||x.state==='unknown'||x.state==='unsupported');
+  if(unreadable.length){
+   const cipher=localStorage.getItem(KEY);
+   if(!cipher)throw Error('找不到加密備份來源');
+   localStorage.setItem(CHECK_BACKUP_KEY,cipher);
+   const before=items;
+   const badIds=new Set(unreadable.map(x=>x.id));
+   items=items.filter(x=>!badIds.has(x.id));
+   try{await persist();render()}catch(e){items=before;render();throw e}
+  }
+  localStorage.setItem(CHECK_STATE_KEY,String(Date.now()));
+  const summary='檢查 '+checks.length+' 筆；移除 '+unreadable.length+' 筆網址失效物件；'+blocked.length+' 筆受限制／狀態不明，未自動刪除。';
+  listingCheckStatus(summary);
+  if(manual)alert(summary+(unreadable.length?' 已保存一份本機加密清理前備份。':''));
+ }catch(error){
+  listingCheckStatus('無法完成網址檢查；不會因檢查服務故障而刪除房屋。');
+  if(manual)alert('網址檢查失敗，房屋資料未因此刪除。');
+ }finally{listingCheckBusy=false;$('listing-check-now').disabled=false}
+}
+$('listing-check-now').onclick=()=>checkListingUrls(true);
+$('listing-restore').onclick=restoreUrlCleanupBackup;
 function safeUrl(url){try{const u=new URL(url);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
 function el(name,className,text){const n=document.createElement(name);if(className)n.className=className;if(text!==undefined)n.textContent=text;return n}
 function criteria(item){const checks=[['預算 ≤ 2000萬',item.price===''||item.price==null?null:Number(item.price)<=2000],['兩房',item.rooms===''||item.rooms==null?null:Number(item.rooms)>=2],['主建 ≥ 15坪',item.area===''||item.area==null?null:Number(item.area)>=15],['電梯',item.elevator==='yes'?true:item.elevator==='no'?false:null],['格局',item.layout==='yes'?true:item.layout==='no'?false:null],['防潮',item.humidity==='no'?true:item.humidity==='yes'?false:null],['噪音',item.noise==='no'?true:item.noise==='yes'?false:null]];return checks}
@@ -198,7 +258,7 @@ try{await persist();$('editor').close();render()}catch(err){items=oldItems;alert
 for(const id of ['search','listing-filter','status-filter','sort','budget-filter','criteria-filter'])$(id).addEventListener('input',render);
 $('lock-btn').onclick=()=>{secret=null;items=[];$('dashboard').classList.add('hidden');$('lock-btn').classList.add('hidden');$('auth-screen').classList.remove('hidden');$('password').value='';refreshAuth()};
 function refreshAuth(){const has=!!localStorage.getItem(KEY);$('auth-title').textContent=has?'解鎖房屋清單':'建立本機密碼';$('auth-desc').textContent=has?'輸入本機密碼解密你的看屋資料。':'新裝置請輸入原本的房屋資料密碼以取得雲端紀錄；首次建立資料才需要設定及確認密碼。';$('confirm-field').classList.toggle('hidden',has);$('auth-submit').textContent=has?'解鎖並進入':'建立並進入';$('auth-error').classList.add('hidden')}
-$('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').value;let has=!!localStorage.getItem(KEY);$('auth-error').classList.add('hidden');if(pwd.length<8)return fail('密碼至少需要 8 個字元');$('auth-submit').disabled=true;try{await window.homeCloud?.prepareUnlock(pwd,has);has=!!localStorage.getItem(KEY);if(has){const obj=JSON.parse(localStorage.getItem(KEY));if(obj.v!==1)throw Error('Unsupported vault');const key=await derive(pwd,bytes(obj.salt));const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(obj.iv)},key,bytes(obj.data));const rows=JSON.parse(decoder.decode(plain));if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid vault');items=rows;secret=key}else{if(pwd!==$('confirm').value)throw Error('兩次密碼不一致');const salt=crypto.getRandomValues(new Uint8Array(16));secret=await derive(pwd,salt);items=[];localStorage.setItem(KEY,await encrypt(items,secret,salt))}$('auth-screen').classList.add('hidden');$('dashboard').classList.remove('hidden');$('lock-btn').classList.remove('hidden');$('password').value='';$('confirm').value='';render();window.homeCloud?.afterUnlock().catch(()=>{})}catch(err){fail('無法解鎖：密碼不正確或資料已損壞。')}finally{$('auth-submit').disabled=false}};
+$('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').value;let has=!!localStorage.getItem(KEY);$('auth-error').classList.add('hidden');if(pwd.length<8)return fail('密碼至少需要 8 個字元');$('auth-submit').disabled=true;try{await window.homeCloud?.prepareUnlock(pwd,has);has=!!localStorage.getItem(KEY);if(has){const obj=JSON.parse(localStorage.getItem(KEY));if(obj.v!==1)throw Error('Unsupported vault');const key=await derive(pwd,bytes(obj.salt));const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(obj.iv)},key,bytes(obj.data));const rows=JSON.parse(decoder.decode(plain));if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid vault');items=rows;secret=key}else{if(pwd!==$('confirm').value)throw Error('兩次密碼不一致');const salt=crypto.getRandomValues(new Uint8Array(16));secret=await derive(pwd,salt);items=[];localStorage.setItem(KEY,await encrypt(items,secret,salt))}$('auth-screen').classList.add('hidden');$('dashboard').classList.remove('hidden');$('lock-btn').classList.remove('hidden');$('password').value='';$('confirm').value='';render();Promise.resolve(window.homeCloud?.afterUnlock()).catch(()=>{}).finally(()=>checkListingUrls(false))}catch(err){fail('無法解鎖：密碼不正確或資料已損壞。')}finally{$('auth-submit').disabled=false}};
 function fail(s){$('auth-error').textContent=s;$('auth-error').classList.remove('hidden')}
 $('export-btn').onclick=()=>{if(!confirm('匯出檔案為未加密 JSON，請妥善保管，是否繼續？'))return;const blob=new Blob([JSON.stringify({version:1,exported_at:new Date().toISOString(),properties:items},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='edan-home-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 function listingKey(item){
