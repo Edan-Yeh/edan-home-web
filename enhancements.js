@@ -66,7 +66,7 @@ function showDetails(item){
   addLine(grid,'主建坪數',item.area?item.area+' 坪':'');
   addLine(grid,'房數',item.rooms?item.rooms+' 房':'');
   addLine(grid,'看屋狀態',labels[item.status]||'待確認');
-  addLine(grid,'基隆尖峰門到門',commuteLabel(item));addLine(grid,'與通勤基準比較',baselineComparison(item));addLine(grid,'通勤資訊',item.commute);
+  addLine(grid,'通勤起點',item.commuteOrigin);addLine(grid,'基隆尖峰門到門',commuteLabel(item));addLine(grid,'時間來源',commuteSourceName(item));addLine(grid,'通勤查核日期',item.commuteVerifiedAt);addLine(grid,'與通勤基準比較',baselineComparison(item));addLine(grid,'通勤資訊',item.commute);
   addLine(grid,'更新時間',item.updated?new Date(item.updated).toLocaleString('zh-TW'):'');
   summary.append(grid);body.append(summary);
   const heading=mk('h4','','條件評估與評分明細');body.append(heading);
@@ -190,7 +190,10 @@ function showComparison(){
       ['噪音',it=>it.noise==='no'?'無明顯問題':it.noise==='yes'?'有疑慮':null]
     ]},
     {title:'基隆通勤',rows:[
+      ['通勤起點',it=>it.commuteOrigin||null],
       ['尖峰門到門（分鐘）',it=>it.commuteMinutes?it.commuteMinutes+' 分鐘':null],
+      ['來源',it=>it.commuteSource?commuteSourceName(it):null],
+      ['查核日期',it=>it.commuteVerifiedAt||null],
       ['相對南京三民／行天宮基準',it=>knownCommute(it)===null?null:baselineComparison(it)],
       ['交通方式',it=>({rail:'臺鐵＋轉乘',bus:'國道客運＋轉乘',mixed:'捷運＋臺鐵／客運',other:'其他大眾運輸'}[it.commuteMode]||null)],
       ['交通與通勤備註',it=>it.commute?.trim()||null]
@@ -342,7 +345,7 @@ const formSection=(title,fields)=>{
 const groupDefinitions=[
  ['基本資訊',['title','price','area','rooms','listingStatus','status','url']],
  ['格局與屋況',['elevator','layout','humidity','noise']],
- ['交通與通勤',['commuteMinutes','commuteMode','commute']],
+ ['交通與通勤',['commuteOrigin','commuteMinutes','commuteMode','commuteSource','commuteVerifiedAt','commute']],
  ['看屋備註',['note']]
 ];
 const originalRatings=document.querySelector('.extra-ratings');
