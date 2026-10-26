@@ -61,6 +61,11 @@ function showDetails(item){
   const result=mk('div','assessment-hero');
   result.append(mk('div','assessment-number',evaluation.maximum===0?'尚無評分':evaluation.points+' / 100'),mk('div','muted',evaluation.maximum===0?'尚未填寫評分條件；請先編輯房屋資料':'已確認的評分權重 '+evaluation.maximum+' / 100；待確認項目不加分'));
   summary.append(result);
+  const decision=decisionScore(item);
+  const card=mk('div','assessment-hero');
+  card.append(mk('strong','', '綜合購屋決策：'+decision.points+' / 100'));
+  card.append(mk('div','muted','已知權重 '+decision.knownWeight+' / 100；不符合硬性條件、已排除及下架仍不得進入優先候選'));
+  summary.append(card);
   const grid=mk('div','info-grid');
   addLine(grid,'總價',item.price?Number(item.price).toLocaleString('zh-TW')+' 萬':'');
   addLine(grid,'主建坪數',item.area?item.area+' 坪':'');
@@ -136,9 +141,10 @@ function showComparison(){
     const panel=mk('section','compare-home');
     panel.append(mk('h4','',home.title));
     const known=assessment[index].details.filter(d=>d.known).length;
-    const score=assessment[index].maximum===0?'尚無評分':assessment[index].points+' / 100';
+    const decision=decisionScore(home);const score='綜合 '+decision.points+' / 100';
     panel.append(mk('strong','compare-home-score',score));
     panel.append(mk('div','muted','已確認 '+known+' / '+assessment[index].details.length+' 項評估條件'));
+    panel.append(mk('div','muted','已知權重 '+decision.knownWeight+' / 100 · '+evaluateHome(home).label));
     const meter=mk('div','compare-meter');
     const filled=mk('span','');
     filled.style.width=(100*known/assessment[index].details.length)+'%';
@@ -180,6 +186,7 @@ function showComparison(){
   controls.append(filterLabel,counter);body.append(controls);
   const groups=[
     {title:'價格與空間',rows:[
+      ['綜合購屋評分',it=>{const d=decisionScore(it);return d.points+' / 100（已知 '+d.knownWeight+'）'}],
       ['總價',it=>it.price!==''&&it.price!=null?Number(it.price).toLocaleString('zh-TW')+' 萬':null],
       ['主建坪數',it=>it.area!==''&&it.area!=null?it.area+' 坪':null],
       ['房數',it=>it.rooms!==''&&it.rooms!=null?it.rooms+' 房':null]
