@@ -104,7 +104,7 @@ function commuteReliability(item){
  if(minutes===null)return {level:0,label:'通勤時間待確認',days:null,rank:3,minutes:null};
  const verified=item.commuteVerifiedAt;
  const source=item.commuteSource;
- const parsed=typeof verified==='string'&&/^\\d{4}-\\d{2}-\\d{2}$/.test(verified)?new Date(verified+'T00:00:00Z'):null;
+ const parsed=typeof verified==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(verified)?new Date(verified+'T00:00:00Z'):null;
  const validDate=parsed&&!Number.isNaN(parsed.getTime())&&parsed.toISOString().slice(0,10)===verified;
  const days=validDate?Math.floor((Date.now()-parsed.getTime())/86400000):null;
  if(days===null||days<0)return {level:1,label:'通勤查核日期待確認',days,rank:2,minutes};
@@ -197,4 +197,4 @@ window.homeVaultRows=()=>secret?items:null;
 window.lockLocalVault=()=>document.getElementById('lock-btn').click();
 document.getElementById('cloud-upload-btn').addEventListener('click',()=>window.homeCloud?.pushExplicit());
 document.getElementById('cloud-download-btn').addEventListener('click',()=>window.homeCloud?.pullExplicit());
-</script><script src="sync.js?v=2.1"></script><script src="enhancements.js?v=2.6"></script><script type="module" src="auth.js?v=2.0.1"></script></body></html>
+</script><script src="sync.js?v=2.1"></script><script src="enhancements.js?v=2.7"></script><script type="module" src="auth.js?v=2.0.1"></script></body></html>
