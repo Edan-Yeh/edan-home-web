@@ -107,7 +107,7 @@ function updateListingHealth(){
  summary.textContent='房源網址｜上次查核：'+stamp+'｜可讀取 '+counts.accessible+'｜已失效 '+counts.unreadable+'｜待確認 '+unknown;
  listingCheckStatus('最近一次查核：'+stamp+'。'+(unknown?'有 '+unknown+' 筆網址待人工查證。':'暫無存取限制提醒。'));
  for(const entry of report.checked){
-  const item=items.find(row=>row.url===entry.url),box=el('div','listing-check-row'),name=el('strong','',item?.title||'已移除／目前不在清單的房屋');
+  const item=items.find(row=>row.id===entry.id),box=el('div','listing-check-row'),name=el('strong','',item?.title||'已移除／目前不在清單的房屋');
   const description=el('span','',listingStatusName(entry.state)+(entry.status?' · HTTP '+entry.status:'')+(entry.state==='unreadable'?' · 已清理':entry.state==='accessible'?'':' · 不自動刪除'));
   box.append(name,description);detail.append(box);
  }
@@ -162,7 +162,8 @@ async function checkListingUrls(manual=false){
    for(const removed of unreadable){const hash=await listingHash(removed);if(hash)hashes.add(hash)}
    localStorage.setItem(CHECK_REMOVED_KEY,JSON.stringify([...hashes].slice(-1500)));
   }
-  localStorage.setItem(CHECK_REPORT_KEY,JSON.stringify({checkedAt:new Date().toISOString(),checked:checks}));
+  const safeChecks=checks.map(entry=>({id:rows.find(x=>x.url===entry.url)?.id||null,state:entry.state,status:Number.isInteger(entry.status)?entry.status:null}));
+  localStorage.setItem(CHECK_REPORT_KEY,JSON.stringify({checkedAt:new Date().toISOString(),checked:safeChecks}));
   localStorage.setItem(CHECK_STATE_KEY,String(Date.now()));
   updateListingHealth();
   const summary='檢查 '+checks.length+' 筆；移除 '+unreadable.length+' 筆網址失效物件；'+blocked.length+' 筆受限制／狀態不明，未自動刪除。';
