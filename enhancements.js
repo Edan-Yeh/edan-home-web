@@ -86,6 +86,8 @@ function showDetails(item){
   body.append(checklist);
   body.append(list, mk('h4','','看屋備註'));
   body.append(mk('p','full-note',item.note||'尚未填寫看屋備註'));
+  const travel=commuteRouteUrl(item);
+  if(travel){const anchor=mk('a','detail-link','查詢基隆大眾運輸路線 ↗');anchor.href=travel;anchor.target='_blank';anchor.rel='noopener noreferrer';body.append(anchor)}
   if(item.url&&safeUrl(item.url)){const a=mk('a','detail-link','開啟原始物件網址 ↗');a.href=safeUrl(item.url);a.target='_blank';a.rel='noopener noreferrer';body.append(a)}
   document.getElementById('detail-edit').onclick=()=>{dlg.close();openEditor(item)};
   dlg.showModal();
