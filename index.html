@@ -168,8 +168,8 @@ function categoryOf(item){return item.listingStatus==='delisted'?'delisted':item
 async function removeTrackedHome(item,reason){
  if(!secret){alert('請先解鎖房屋資料。');return false}
  const message=reason==='delisted'
-  ?'請先開啟房源頁並確認已下架。\\n確定將「'+item.title+'」從追蹤清單刪除？\\n此操作會更新本機加密紀錄，並嘗試同步雲端；無法從網站內復原。'
-  :'確定刪除「'+item.title+'」？\\n此操作會更新本機加密紀錄，並嘗試同步雲端。';
+  ?'請先開啟房源頁並確認已下架。\n確定將「'+item.title+'」從追蹤清單刪除？\n此操作會更新本機加密紀錄，並嘗試同步雲端；無法從網站內復原。'
+  :'確定刪除「'+item.title+'」？\n此操作會更新本機加密紀錄，並嘗試同步雲端。';
  if(!confirm(message))return false;
  const before=items;
  items=items.filter(row=>row.id!==item.id);
