@@ -403,29 +403,4 @@ editorDialog.addEventListener('close',()=>{
 
 const oldRender=render;render=function(){oldRender();renderComparison()};
 
-/* Optional starter records from previously shared listing links.
-   These are unverified references, NOT live listings or current prices. */
-const starterListings=[
- {title:'圓山超值電梯美宅',url:'https://buy.yungching.com.tw/house/7455107'},
- {title:'古亭邊間小資三房',url:'https://buy.yungching.com.tw/house/7014965'}
-];
-async function loadStarterListings(){
- const missing=starterListings.filter(source=>!items.some(existing=>existing.url&&safeUrl(existing.url)===safeUrl(source.url)));
- if(!missing.length){alert('這兩筆參考物件已在清單內。');return}
- if(!confirm('新增 '+missing.length+' 筆先前討論的房屋連結？資料尚未重新查證；不會填入價格、坪數或假設屋況，也不會刪除現有紀錄。'))return;
- const now=new Date().toISOString();
- for(const ref of missing)items.push({
-   id:crypto.randomUUID(),title:ref.title,url:ref.url,
-   price:'',area:'',rooms:'',status:'unseen',elevator:'',layout:'',humidity:'',noise:'',
-   commute:'',note:'參考物件：尚未確認是否仍在售；價格、坪數、屋況與通勤待現場／來源核實。',
-   updated:now
- });
- await persist();render();
-}
-const starterButton=mk('button','btn','＋ 匯入 2 筆參考物件');
-starterButton.id='starter-listings';
-starterButton.type='button';
-starterButton.onclick=()=>loadStarterListings().catch(()=>alert('儲存失敗，請確認瀏覽器可用儲存空間。'));
-document.querySelector('#dashboard .headline .actions').prepend(starterButton);
-
 if(!document.getElementById('dashboard').classList.contains('hidden'))render();
