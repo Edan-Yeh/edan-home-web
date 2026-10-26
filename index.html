@@ -92,7 +92,7 @@ function listingCheckStatus(message){const node=$('listing-check-status');if(nod
 async function restoreUrlCleanupBackup(){
  if(!secret){alert('請先解鎖房屋資料');return}
  const raw=localStorage.getItem(CHECK_BACKUP_KEY);if(!raw){alert('沒有可還原的清理前備份。');return}
- if(!confirm('確定以清理前加密備份覆蓋目前房屋清單？\\n清理後新增或更新的資料會被取代。'))return;
+ if(!confirm('確定以清理前加密備份覆蓋目前房屋清單？\n清理後新增或更新的資料會被取代。'))return;
  try{
   const v=JSON.parse(raw),decoded=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(v.iv)},secret,bytes(v.data));
   const rows=JSON.parse(decoder.decode(decoded));
