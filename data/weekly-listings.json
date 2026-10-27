@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-28T00:00:00+08:00",
+  "source": "台北兩房房價追蹤",
+  "status": "initialized",
+  "description": "由既有週日排程維護的公開候選物件資料。私人備註、看屋紀錄和加密資料不得寫入本檔。",
+  "properties": []
+}
