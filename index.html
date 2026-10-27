@@ -62,7 +62,7 @@
 <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
 <div class="modal-head"><h3 id="settings-title">設定與資料管理</h3><button class="btn small" type="button" id="settings-close" aria-label="關閉設定">✕</button></div>
 <div class="settings-body">
-<section><h4>基隆通勤比較基準</h4><p class="muted">終點：元大證券基隆孝二分公司（基隆市仁愛區孝二路86之5號）。輸入平日尖峰「步行＋等車＋轉乘＋到入口」的門到門總時間；不自動推估。</p><div class="baseline-grid"><label class="field">南京三民基準（分鐘）<input type="number" id="baseline-nanjing" min="1" max="300" placeholder="尚未設定"></label><label class="field">行天宮基準（分鐘）<input type="number" id="baseline-xingtian" min="1" max="300" placeholder="尚未設定"></label></div><p class="muted">基準時間只用於比較；請填入實測或完整路線估算值，未填時不顯示快慢差距。</p><button class="btn" type="button" id="baseline-save">儲存通勤基準</button></section><section><h4>房屋網址自動清理</h4><p class="muted">登入並解鎖後，每 24 小時檢查一次已支援的永慶物件連結。確認 HTTP 404／410 或其他實際網頁錯誤時，先保留本機加密備份再自動移除。遇到登入限制、反爬封鎖、重新導向或檢查服務失敗則標記待查，不直接當作下架。</p><div class="actions"><button class="btn" id="listing-check-now" type="button">立即檢查失效網址</button><button class="btn" id="listing-restore" type="button">還原上次清理前備份</button></div><p class="muted" id="listing-check-status" role="status">尚未執行網址檢查</p><div id="listing-check-report" class="listing-check-report" aria-live="polite"></div></section><section><h4>備份與匯入</h4><p class="muted">匯出未加密 JSON 備份；合併匯入不覆蓋現有看屋狀態與個人筆記。</p><div class="actions"><button class="btn" id="import-btn" type="button">合併匯入 JSON</button><button class="btn" id="export-btn" type="button">匯出備份</button></div></section>
+<section><h4>基隆通勤比較基準</h4><p class="muted">終點：元大證券基隆孝二分公司（基隆市仁愛區孝二路86之5號）。輸入平日尖峰「步行＋等車＋轉乘＋到入口」的門到門總時間；不自動推估。</p><div class="baseline-grid"><label class="field">南京三民基準（分鐘）<input type="number" id="baseline-nanjing" min="1" max="300" placeholder="尚未設定"></label><label class="field">行天宮基準（分鐘）<input type="number" id="baseline-xingtian" min="1" max="300" placeholder="尚未設定"></label></div><p class="muted">基準時間只用於比較；請填入實測或完整路線估算值，未填時不顯示快慢差距。</p><button class="btn" type="button" id="baseline-save">儲存通勤基準</button></section><section><h4>房屋網址自動清理</h4><p class="muted">登入並解鎖後，每 24 小時檢查一次已支援的永慶物件連結。確認 HTTP 404／410 或其他實際網頁錯誤時，先保留本機加密備份再自動移除。遇到登入限制、反爬封鎖、重新導向或檢查服務失敗則標記待查，不直接當作下架。</p><div class="actions"><button class="btn" id="listing-check-now" type="button">立即檢查失效網址</button><button class="btn" id="listing-restore" type="button">還原上次清理前備份</button></div><p class="muted" id="listing-check-status" role="status">尚未執行網址檢查</p><div id="listing-check-report" class="listing-check-report" aria-live="polite"></div><h4>最近狀態異動</h4><p class="muted">只保存房屋內部編號、狀態及時間，不額外儲存明文網址或備註。</p><div id="listing-change-history" class="listing-check-report"></div></section><section><h4>備份與匯入</h4><p class="muted">匯出未加密 JSON 備份；合併匯入不覆蓋現有看屋狀態與個人筆記。</p><div class="actions"><button class="btn" id="import-btn" type="button">合併匯入 JSON</button><button class="btn" id="export-btn" type="button">匯出備份</button></div></section>
 <section><h4>加密雲端同步</h4><p class="muted">資料以原本的房屋密碼加密；只有出現同步問題時才需要手動操作。</p><div class="actions"><button class="btn" id="cloud-upload-btn" type="button">↑ 上傳本機</button><button class="btn" id="cloud-download-btn" type="button">↓ 下載雲端</button></div></section>
 <section><h4>資料安全</h4><p class="muted">請定期備份。匯出的 JSON 不加密，切勿公開分享；若手機與電腦同時修改，請先核對同步狀態。</p></section>
 </div></dialog>
@@ -90,14 +90,20 @@ const CHECK_STATE_KEY='edan-home-url-check-v1';
 const CHECK_BACKUP_KEY='edan-home-url-cleanup-backup-v1';
 const CHECK_REPORT_KEY='edan-home-url-report-v1';
 const CHECK_REMOVED_KEY='edan-home-url-removed-hashes-v1';
+const CHECK_HISTORY_KEY='edan-home-url-history-v1';
 function listingHashPayload(row){const url=safeUrl(row.url||'');const m=url&&new URL(url).pathname.match(/\/house\/(\d+)/);return m?'yungching:'+m[1]:url||null}
 async function listingHash(row){const payload=listingHashPayload(row);if(!payload)return null;const digest=await crypto.subtle.digest('SHA-256',encoder.encode(payload));return [...new Uint8Array(digest)].map(c=>c.toString(16).padStart(2,'0')).join('')}
 function readRemovedHashes(){try{const v=JSON.parse(localStorage.getItem(CHECK_REMOVED_KEY)||'[]');return new Set(Array.isArray(v)?v.filter(x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x)):[])}catch{return new Set()}}
+function readListingHistory(){try{const rows=JSON.parse(localStorage.getItem(CHECK_HISTORY_KEY)||'[]');return Array.isArray(rows)?rows.slice(-250):[]}catch{return []}}
 function readListingReport(){try{const x=JSON.parse(localStorage.getItem(CHECK_REPORT_KEY)||'null');return x&&Array.isArray(x.checked)?x:null}catch{return null}}
 function listingStatusName(state){return {accessible:'可讀取',unreadable:'無法讀取／已移除',blocked:'網站限制存取',unknown:'連線或重新導向待確認',unsupported:'未支援檢查'}[state]||'尚未查核'}
 function updateListingHealth(){
  const report=readListingReport(),summary=$('listing-health-summary'),detail=$('listing-check-report');
  detail.replaceChildren();
+ const historyRoot=$('listing-change-history');historyRoot.replaceChildren();
+ const history=readListingHistory().slice(-30).reverse();
+ for(const change of history){const item=items.find(row=>row.id===change.id);const card=el('div','listing-check-row');card.append(el('strong','',item?.title||'已移除的房屋'),el('span','',new Date(change.when).toLocaleString('zh-TW')+' · '+listingStatusName(change.from)+' → '+listingStatusName(change.to)));historyRoot.append(card)}
+ if(!history.length)historyRoot.append(el('p','muted','目前沒有網址狀態異動紀錄。'));
  if(!report){summary.textContent='房源網址狀態：尚無查核紀錄';listingCheckStatus('尚未執行網址檢查');return}
  const time=new Date(report.checkedAt);
  const stamp=Number.isNaN(time.getTime())?'時間不明':time.toLocaleString('zh-TW');
@@ -163,7 +169,16 @@ async function checkListingUrls(manual=false){
    localStorage.setItem(CHECK_REMOVED_KEY,JSON.stringify([...hashes].slice(-1500)));
   }
   const safeChecks=checks.map(entry=>({id:rows.find(x=>x.url===entry.url)?.id||null,state:entry.state,status:Number.isInteger(entry.status)?entry.status:null}));
-  localStorage.setItem(CHECK_REPORT_KEY,JSON.stringify({checkedAt:new Date().toISOString(),checked:safeChecks}));
+  const previousReport=readListingReport();
+  const previousStates=new Map((previousReport?.checked||[]).map(entry=>[entry.id,entry.state]));
+  const changes=readListingHistory();
+  const checkedAt=new Date().toISOString();
+  for(const entry of safeChecks){
+   const previous=previousStates.get(entry.id);
+   if(entry.id&&previous&&previous!==entry.state)changes.push({id:entry.id,from:previous,to:entry.state,when:checkedAt});
+  }
+  localStorage.setItem(CHECK_HISTORY_KEY,JSON.stringify(changes.slice(-250)));
+  localStorage.setItem(CHECK_REPORT_KEY,JSON.stringify({checkedAt,checked:safeChecks}));
   localStorage.setItem(CHECK_STATE_KEY,String(Date.now()));
   updateListingHealth();
   const summary='檢查 '+checks.length+' 筆；移除 '+unreadable.length+' 筆網址失效物件；'+blocked.length+' 筆受限制／狀態不明，未自動刪除。';
