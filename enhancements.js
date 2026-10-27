@@ -68,6 +68,8 @@ function showDetails(item){
   summary.append(card);
   const grid=mk('div','info-grid');
   addLine(grid,'總價',item.price?Number(item.price).toLocaleString('zh-TW')+' 萬':'');
+  addLine(grid,'公開售價查核',item.priceCheckedAt?new Date(item.priceCheckedAt).toLocaleString('zh-TW'):'未有可信的公開售價查核');
+  if(item.pendingPrice?.value)addLine(grid,'公開售價待確認',Number(item.pendingPrice.value).toLocaleString('zh-TW')+' 萬（異動幅度過大）');
   addLine(grid,'主建坪數',item.area?item.area+' 坪':'');
   addLine(grid,'房數',item.rooms?item.rooms+' 房':'');
   addLine(grid,'看屋狀態',labels[item.status]||'待確認');
@@ -89,7 +91,18 @@ function showDetails(item){
     checklist.append(jump);
   }else checklist.append(mk('p','muted','基本條件已填妥，可進一步確認物件真實性。'));
   body.append(checklist);
-  body.append(list, mk('h4','','看屋備註'));
+  body.append(list);
+  if(Array.isArray(item.priceHistory)&&item.priceHistory.length){
+   body.append(mk('h4','','公開售價異動紀錄'));
+   const historyBox=mk('div','score-breakdown');
+   for(const h of item.priceHistory.slice(-15).reverse()){
+    const change=mk('div','score-row');
+    change.append(mk('span','',String(h.at||'').slice(0,10)),mk('strong','',Number(h.from).toLocaleString('zh-TW')+' → '+Number(h.to).toLocaleString('zh-TW')+' 萬'));
+    historyBox.append(change);
+   }
+   body.append(historyBox);
+  }
+  body.append(mk('h4','','看屋備註'));
   body.append(mk('p','full-note',item.note||'尚未填寫看屋備註'));
   const travel=commuteRouteUrl(item);
   if(travel){const anchor=mk('a','detail-link','查詢基隆大眾運輸路線 ↗');anchor.href=travel;anchor.target='_blank';anchor.rel='noopener noreferrer';body.append(anchor)}
@@ -188,6 +201,8 @@ function showComparison(){
     {title:'價格與空間',rows:[
       ['綜合購屋評分',it=>{const d=decisionScore(it);return d.points+' / 100（已知 '+d.knownWeight+'）'}],
       ['總價',it=>it.price!==''&&it.price!=null?Number(it.price).toLocaleString('zh-TW')+' 萬':null],
+      ['最近公開售價變動',it=>{const h=Array.isArray(it.priceHistory)?it.priceHistory.at(-1):null;return h?Number(h.from).toLocaleString('zh-TW')+' → '+Number(h.to).toLocaleString('zh-TW')+' 萬':null}],
+      ['公開售價更新時間',it=>it.priceCheckedAt||null],
       ['主建坪數',it=>it.area!==''&&it.area!=null?it.area+' 坪':null],
       ['房數',it=>it.rooms!==''&&it.rooms!=null?it.rooms+' 房':null]
     ]},
