@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Edan Home Tracker｜雲端最新房源</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Noto Sans TC",sans-serif;color:#163d37;background:#f4f8f6;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}header{background:#163f39;color:#fff;padding:24px max(18px,calc((100vw - 1100px)/2))}header h1{margin:0;font-size:24px}header p{margin:8px 0 0;opacity:.82;font-size:14px;line-height:1.6}
+main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white;border:1px solid #dde9e4;border-radius:16px;padding:20px;margin-bottom:18px;line-height:1.65}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:15px 0}.toolbar input,.toolbar select,.toolbar button,.back{font:inherit;font-size:14px;border-radius:10px;padding:11px 14px;border:1px solid #bed3ca;background:white;color:#163f39}
+.toolbar input{flex:2;min-width:180px}.toolbar select{flex:1;min-width:150px}.toolbar button{cursor:pointer}.back{color:white;background:#247f72;text-decoration:none;display:inline-block;border:0}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:18px 0}
+.stat{padding:16px;border-radius:12px;background:white;border:1px solid #dde9e4}.stat small{color:#607a73;display:block}.stat strong{font-size:25px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.card{background:#fff;border:1px solid #dbe8e2;border-radius:16px;padding:20px;min-width:0}
+.card h2{margin:0 0 12px;font-size:18px}.price{font-size:26px;color:#156e60;font-weight:750}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
+.meta span{background:#eff6f3;border-radius:7px;font-size:13px;padding:6px 10px}.card p{color:#627a71;font-size:13px;line-height:1.6}.card a{display:inline-block;margin-top:12px;color:#106f62;font-weight:650}
+.status{font-size:13px;color:#536d65;margin:12px 0}.error{color:#a23a3a}.notice{background:#fef8e9;padding:15px;border-radius:12px;color:#695632;font-size:13px;margin-top:22px;line-height:1.65}
+@media(max-width:650px){.cards{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:21px}}
+</style></head><body>
+<header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>雲端排程更新 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
+<main>
+<section class="intro"><strong>雲端房源清單</strong><p>這裡只顯示每週追蹤排程已公開發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
+<div class="stats">
+<div class="stat"><small>公開候選</small><strong id="count">—</strong></div>
+<div class="stat"><small>預算 2,000 萬內</small><strong id="budget">—</strong></div>
+<div class="stat"><small>主建 ≥ 15 坪</small><strong id="area">—</strong></div>
+</div>
+<div class="toolbar">
+<input id="q" type="search" aria-label="搜尋案名" placeholder="搜尋案名">
+<select id="price" aria-label="預算"><option value="">不限價格</option><option value="1700">1,700 萬內</option><option value="2000">2,000 萬內</option></select>
+<select id="space" aria-label="主建物面積"><option value="">不限坪數</option><option value="15">主建物至少 15 坪</option></select>
+<button id="reload" type="button">重新取得雲端資料</button>
+</div>
+<p class="status" id="status" role="status">正在讀取已發布的公開房源…</p>
+<div class="cards" id="cards"></div>
+<div class="notice">本頁為公開房源研究資料，沒有私人看屋備註、評分、人工排除、帳號或解密密碼。屋況、格局合法性、漏水、噪音及到基隆孝二分公司的尖峰門到門通勤，未有可靠證據時一律待確認。登入私人工作台才能查看及編輯個人紀錄。</div>
+</main>
+<script>
+'use strict';
+const el=id=>document.getElementById(id);
+let houses=[];
+const number=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v))?Number(v):null;
+const text=(v,max=140)=>typeof v==='string'?v.slice(0,max):'';
+function valid(row){
+ if(!row||row.status!=='active'||typeof row.title!=='string'||typeof row.url!=='string'||!/^https:\/\/(buy\.yungching\.com\.tw\/house\/\d{5,12}|sale\.591\.com\.tw\/home\/house\/detail\/[12]\/\d{5,12}(?:\.html)?)(?:\/)?(?:\?.*)?$/.test(row.url))return false;
+ const date=Date.parse(text(row.verifiedAt,12)+'T00:00:00Z');
+ return Number.isFinite(date)&&Date.now()-date<35*86400000&&date<=Date.now()+86400000;
+}
+function render(){
+ const q=el('q').value.trim().toLowerCase(),max=number(el('price').value),minArea=number(el('space').value);
+ el('count').textContent=houses.length;
+ el('budget').textContent=houses.filter(x=>number(x.price)!==null&&number(x.price)<=2000).length;
+ el('area').textContent=houses.filter(x=>number(x.area)!==null&&number(x.area)>=15).length;
+ const filtered=houses.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(max===null||(number(x.price)!==null&&number(x.price)<=max))&&(minArea===null||(number(x.area)!==null&&number(x.area)>=minArea)));
+ const root=el('cards');root.replaceChildren();
+ if(!filtered.length){const p=document.createElement('p');p.textContent='目前沒有符合篩選條件的已發布物件。';root.append(p);return}
+ for(const item of filtered){
+  const card=document.createElement('article');card.className='card';
+  const h=document.createElement('h2');h.textContent=item.title;card.append(h);
+  const price=document.createElement('div');price.className='price';price.textContent=number(item.price)===null?'價格待查核':number(item.price).toLocaleString('zh-TW')+' 萬';card.append(price);
+  const row=document.createElement('div');row.className='meta';
+  for(const label of [number(item.rooms)===null?'房數待查核':item.rooms+' 房',number(item.area)===null?'主建坪待查核':'主建 '+item.area+' 坪']){const span=document.createElement('span');span.textContent=label;row.append(span)}
+  card.append(row);
+  const verified=document.createElement('p');verified.textContent='來源最近確認日：'+text(item.verifiedAt,10)+' · 格局、屋況、通勤需驗證';card.append(verified);
+  const link=document.createElement('a');link.textContent='查看原始房源';link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';card.append(link);
+  root.append(card);
+ }
+}
+async function load(){
+ el('reload').disabled=true;el('status').textContent='正在讀取雲端資料…';el('status').className='status';
+ try{
+  const response=await fetch('./data/weekly-listings.json?t='+Date.now(),{cache:'no-store'});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const feed=await response.json();
+  if(feed?.schema_version!==1||!Array.isArray(feed.properties)||feed.properties.length>250)throw Error('資料格式錯誤');
+  houses=feed.properties.filter(valid);render();
+  const stamp=Number.isFinite(Date.parse(feed.generated_at))?new Date(feed.generated_at).toLocaleString('zh-TW'):'日期不明';
+  el('status').textContent='最近排程發布：'+stamp+'｜刊登候選 '+houses.length+' 筆（每次開啟本頁即讀取雲端發布內容）';
+ }catch(e){el('status').className='status error';el('status').textContent='無法取得已發布資料：'+e.message+'。私人清單不受影響。'}
+ finally{el('reload').disabled=false}
+}
+for(const id of ['q','price','space'])el(id).addEventListener('input',render);
+el('reload').addEventListener('click',load);
+load();
+</script></body></html>
