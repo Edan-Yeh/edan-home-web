@@ -12,7 +12,8 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 .cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.card{background:#fff;border:1px solid #dbe8e2;border-radius:16px;padding:20px;min-width:0}
 .card h2{margin:0 0 12px;font-size:18px}.price{font-size:26px;color:#156e60;font-weight:750}.meta{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}
 .meta span{background:#eff6f3;border-radius:7px;font-size:13px;padding:6px 10px}.card p{color:#627a71;font-size:13px;line-height:1.6}.card a{display:inline-block;margin-top:12px;color:#106f62;font-weight:650}
-.status{font-size:13px;color:#536d65;margin:12px 0}.error{color:#a23a3a}.notice{background:#fef8e9;padding:15px;border-radius:12px;color:#695632;font-size:13px;margin-top:22px;line-height:1.65}
+.status{font-size:13px;color:#536d65;margin:12px 0}.error{color:#a23a3a}.listing-events{display:grid;gap:9px}.event{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 0;border-bottom:1px solid #dde9e4}.event strong{font-size:14px}.event small{color:#607a73}.event em{font-size:13px;font-style:normal;font-weight:650}.event a{color:#136e60;overflow-wrap:anywhere}.event.down em{color:#167251}.event.up em{color:#af6b17}.event.removed em{color:#9b544a}
+.notice{background:#fef8e9;padding:15px;border-radius:12px;color:#695632;font-size:13px;margin-top:22px;line-height:1.65}
 @media(max-width:650px){.cards{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:21px}}
 </style></head><body>
 <header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>Supabase 雲端主資料庫 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
@@ -31,6 +32,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 </div>
 <p class="status" id="status" role="status">正在讀取已發布的公開房源…</p>
 <div class="cards" id="cards"></div>
+<section class="intro" style="margin-top:24px"><h2>最新房源異動</h2><p>自動記錄新上架、降價、漲價及從本期公開候選清單移除的物件。<strong>從候選清單移除不等於已成交</strong>，若來源驗證逾期也會移出。</p><div id="events" class="listing-events">讀取雲端異動紀錄中…</div></section>
 <div class="notice">本頁為公開房源研究資料，沒有私人看屋備註、評分、人工排除、帳號或解密密碼。屋況、格局合法性、漏水、噪音及到基隆孝二分公司的尖峰門到門通勤，未有可靠證據時一律待確認。登入私人工作台才能查看及編輯個人紀錄。</div>
 </main>
 <script>
@@ -74,10 +76,30 @@ async function loadSupabase(){
  if(!Array.isArray(rows))throw new Error('雲端資料格式不正確');
  return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at})).filter(valid);
 }
+async function loadEvents(){
+ const root=el('events');root.replaceChildren();
+ try{
+  const response=await fetch('https://uwvtcqdsmuldswqbxtjf.supabase.co/rest/v1/home_public_events?select=source_url,title,event_type,old_price_wan,new_price_wan,occurred_at&order=occurred_at.desc&limit=30',{cache:'no-store',headers:{apikey:CLOUD_PUBLISHABLE,Accept:'application/json'}});
+  if(!response.ok)throw Error('HTTP '+response.status);
+  const events=await response.json();if(!Array.isArray(events))throw Error('資料格式錯誤');
+  if(!events.length){root.textContent='尚無新異動；開始追蹤後會自動累積。';return}
+  const labels={new:'新增候選',price_down:'降價',price_up:'漲價',removed:'移出候選',returned:'重新納入'};
+  for(const item of events){
+   const row=document.createElement('div');row.className='event '+(item.event_type==='price_down'?'down':item.event_type==='price_up'?'up':item.event_type==='removed'?'removed':'');
+   const left=document.createElement('div'),name=document.createElement('strong');name.textContent=String(item.title||'房屋').slice(0,120);left.append(name);
+   const date=document.createElement('small');date.textContent=' · '+new Date(item.occurred_at).toLocaleString('zh-TW');left.append(date);
+   const change=document.createElement('em');let detail=labels[item.event_type]||'狀態異動';
+   const old=number(item.old_price_wan),now=number(item.new_price_wan);
+   if(old!==null&&now!==null)detail+=' · '+old.toLocaleString('zh-TW')+' → '+now.toLocaleString('zh-TW')+' 萬';
+   change.textContent=detail;
+   row.append(left,change);root.append(row);
+  }
+ }catch{root.textContent='暫時無法取得雲端異動紀錄。'}
+}
 async function load(){
  el('reload').disabled=true;el('status').textContent='正在讀取雲端資料…';el('status').className='status';
  try{
-  houses=await loadSupabase();render();
+  houses=await loadSupabase();render();await loadEvents();
   const stamp=houses.length&&houses[0].publishedAt?new Date(houses[0].publishedAt).toLocaleString('zh-TW'):'尚未發布資料';
   el('status').textContent='Supabase 雲端資料庫｜最近排程發布：'+stamp+'｜公開候選 '+houses.length+' 筆｜不用登入或解鎖';
  }catch(e){el('status').className='status error';el('status').textContent='無法取得已發布資料：'+e.message+'。私人清單不受影響。'}
