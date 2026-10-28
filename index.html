@@ -85,7 +85,7 @@ const bytes=x=>Uint8Array.from(atob(x),c=>c.charCodeAt(0)),b64=x=>btoa(String.fr
 const validItem=x=>x&&typeof x==='object'&&!Array.isArray(x)&&typeof x.id==='string'&&typeof x.title==='string'&&x.title.length>0&&x.title.length<=120&&Object.hasOwn(labels,x.status)&&typeof x.note==='string'&&x.note.length<=3000&&['elevator','layout','humidity','noise'].every(k=>x[k]===undefined||typeof x[k]==='string'&&x[k].length<=12);
 async function derive(password,salt){const raw=await crypto.subtle.importKey('raw',encoder.encode(password),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt,iterations:210000,hash:'SHA-256'},raw,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);}
 async function encrypt(data,key,salt){const iv=crypto.getRandomValues(new Uint8Array(12));const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},key,encoder.encode(JSON.stringify(data)));return JSON.stringify({v:1,salt:b64(salt),iv:b64(iv),data:b64(new Uint8Array(ct))});}
-async function persist(){if(!secret)throw Error('尚未解鎖');const vault=JSON.parse(localStorage.getItem(KEY));localStorage.setItem(KEY,await encrypt(items,secret,bytes(vault.salt)));window.homeCloud?.afterPersist().catch(()=>{});}
+async function persist(){if(!secret)throw Error('尚未解鎖');const vault=JSON.parse(localStorage.getItem(KEY));localStorage.setItem(KEY,await encrypt(items,secret,bytes(vault.salt)));if(window.homeCloud?.afterPersist)await window.homeCloud.afterPersist();}
 
 const WEEKLY_FEED_PATH='./data/weekly-listings.json';
 const WEEKLY_APPLIED_KEY='edan-home-weekly-feed-applied-v1';
