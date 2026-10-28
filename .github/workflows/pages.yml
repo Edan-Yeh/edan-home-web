@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - index.html
+      - market.html
       - enhancements.js
       - auth.js
       - sync.js
