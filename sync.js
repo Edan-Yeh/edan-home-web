@@ -117,5 +117,30 @@
    else location.reload();
   }catch(e){display('下載失敗：'+e.message,true)}
  }
- window.homeCloud={prepareUnlock,afterUnlock,afterPersist,pushExplicit,pullExplicit};
+ let lastCloudCheck=0,checking=false;
+ async function checkCloudChanges(showMessage=false){
+  if(checking||!window.homeAuth?.authorized||!window.secretAccessible?.())return;
+  if(!showMessage&&Date.now()-lastCloudCheck<60000)return;
+  checking=true;lastCloudCheck=Date.now();
+  try{
+   await queue.catch(()=>{});
+   const remote=await fetchRemote();
+   if(!remote){if(showMessage)display('雲端尚無資料，請先在已登入裝置完成同步。');return}
+   if(currentVersion===null){
+    display('發現雲端房屋資料。請先匯出本機備份，再使用「下載雲端」取得最新紀錄。',true);
+    return;
+   }
+   if(remote.version!==currentVersion){
+    suspended=true;
+    display('另一台裝置已更新資料（雲端 v'+remote.version+'）。請先備份目前內容，再按「下載雲端」重新解鎖，避免覆蓋。',true);
+   }else if(showMessage){
+    display('手機／電腦同步正常，雲端已是目前版本 v'+remote.version);
+   }
+  }catch(e){if(showMessage)display('雲端同步查核失敗：'+e.message,true)}
+  finally{checking=false}
+ }
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkCloudChanges(false)});
+ window.addEventListener('focus',()=>checkCloudChanges(false));
+ window.addEventListener('online',()=>checkCloudChanges(false));
+ window.homeCloud={prepareUnlock,afterUnlock,afterPersist,pushExplicit,pullExplicit,checkCloudChanges};
 })();
