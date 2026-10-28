@@ -15,9 +15,9 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 .status{font-size:13px;color:#536d65;margin:12px 0}.error{color:#a23a3a}.notice{background:#fef8e9;padding:15px;border-radius:12px;color:#695632;font-size:13px;margin-top:22px;line-height:1.65}
 @media(max-width:650px){.cards{grid-template-columns:1fr}.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:21px}}
 </style></head><body>
-<header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>雲端排程更新 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
+<header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>Supabase 雲端主資料庫 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
 <main>
-<section class="intro"><strong>雲端房源清單</strong><p>這裡只顯示每週追蹤排程已公開發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
+<section class="intro"><strong>雲端房源清單</strong><p>這裡直接讀取 Supabase 雲端主資料庫中已發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
 <div class="stats">
 <div class="stat"><small>公開候選</small><strong id="count">—</strong></div>
 <div class="stat"><small>預算 2,000 萬內</small><strong id="budget">—</strong></div>
@@ -64,16 +64,22 @@ function render(){
   root.append(card);
  }
 }
+const CLOUD_API='https://uwvtcqdsmuldswqbxtjf.supabase.co/rest/v1/home_public_listings';
+const CLOUD_PUBLISHABLE='sb_publishable_XfMTL7LnvCoTrJFtgNF0mw_qNxAiwAW';
+async function loadSupabase(){
+ const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at&order=title.asc&limit=250';
+ const response=await fetch(url,{cache:'no-store',headers:{apikey:CLOUD_PUBLISHABLE,Accept:'application/json'}});
+ if(!response.ok)throw new Error('Supabase HTTP '+response.status);
+ const rows=await response.json();
+ if(!Array.isArray(rows))throw new Error('雲端資料格式不正確');
+ return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at})).filter(valid);
+}
 async function load(){
  el('reload').disabled=true;el('status').textContent='正在讀取雲端資料…';el('status').className='status';
  try{
-  const response=await fetch('./data/weekly-listings.json?t='+Date.now(),{cache:'no-store'});
-  if(!response.ok)throw Error('HTTP '+response.status);
-  const feed=await response.json();
-  if(feed?.schema_version!==1||!Array.isArray(feed.properties)||feed.properties.length>250)throw Error('資料格式錯誤');
-  houses=feed.properties.filter(valid);render();
-  const stamp=Number.isFinite(Date.parse(feed.generated_at))?new Date(feed.generated_at).toLocaleString('zh-TW'):'日期不明';
-  el('status').textContent='最近排程發布：'+stamp+'｜刊登候選 '+houses.length+' 筆（每次開啟本頁即讀取雲端發布內容）';
+  houses=await loadSupabase();render();
+  const stamp=houses.length&&houses[0].publishedAt?new Date(houses[0].publishedAt).toLocaleString('zh-TW'):'尚未發布資料';
+  el('status').textContent='Supabase 雲端資料庫｜最近排程發布：'+stamp+'｜公開候選 '+houses.length+' 筆｜不用登入或解鎖';
  }catch(e){el('status').className='status error';el('status').textContent='無法取得已發布資料：'+e.message+'。私人清單不受影響。'}
  finally{el('reload').disabled=false}
 }
