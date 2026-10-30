@@ -22,6 +22,56 @@
 .route-link{color:#147b73;font-size:13px;display:inline-block;margin:5px 0 10px;text-decoration:underline}.route-link:focus-visible{outline:2px solid #147b73;outline-offset:3px}
 .listing-check-report{display:grid;gap:8px;margin-top:10px}.listing-check-row{padding:10px 12px;background:#f2f6f5;border:1px solid #e0e9e6;border-radius:10px;font-size:13px;overflow-wrap:anywhere}.listing-check-row strong{display:block;margin-bottom:4px}.listing-check-row span{display:block;color:#506a65}.listing-health-detail{font-size:12px;color:#6a756f;margin:5px 0}.listing-health-warning{color:#a15a19}.listing-health-good{color:#187363}
 
+
+/* v2.19 mobile compact dashboard. Desktop layout unchanged. */
+.mobile-filter-toggle{display:none}
+.advanced-filters{display:contents}
+.dashboard-details{margin:10px 0 16px;border:1px solid #e2e9e8;background:#fff;border-radius:12px;padding:10px 14px}
+.dashboard-details>summary{cursor:pointer;color:#476966;font-size:13px;font-weight:650;list-style-position:inside}
+.dashboard-details[open]>summary{margin-bottom:9px}
+@media(max-width:700px){
+ header{padding:11px 14px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:5px 10px}
+ header h1{font-size:17px}
+ header>div:first-child small{font-size:11px}
+ .top-actions{width:auto;display:flex;justify-content:flex-end;gap:5px}
+ .top-actions #account-email,.top-actions #storage-status{display:none}
+ .top-actions .btn{font-size:12px;min-height:36px;padding:7px 9px}
+ main{padding-top:12px}
+ .headline{margin-bottom:11px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+ .headline h2{font-size:21px;margin:0}
+ .headline>.muted,.headline>div:first-child>.muted{font-size:11px}
+ .headline .actions{display:flex;width:auto;gap:6px;justify-content:flex-end}
+ .headline .actions .btn{width:auto;min-height:39px;padding:8px 11px;font-size:12px}
+ .headline #add-btn{white-space:nowrap}
+ .headline #settings-open{font-size:0;padding:8px 10px;min-width:40px}
+ .headline #settings-open::first-letter{font-size:18px}
+ .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:11px}
+ .stat{padding:9px 5px;text-align:center;border-radius:10px;min-width:0}
+ .stat span{font-size:10px;white-space:nowrap;letter-spacing:-.3px}
+ .stat strong{font-size:20px;line-height:1.15;margin-top:2px}
+ .toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:8px;margin-bottom:8px}
+ .toolbar #search{grid-column:1;min-height:41px;font-size:16px}
+ .mobile-filter-toggle{display:flex;align-items:center;justify-content:center;gap:4px;min-height:41px;font-size:12px;padding:7px 9px;white-space:nowrap}
+ .advanced-filters{display:none;grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;padding-top:7px;border-top:1px solid #edf2f0}
+ .advanced-filters.is-open{display:grid}
+ .advanced-filters select{min-height:42px;font-size:14px}
+ .advanced-filters #sort{grid-column:1/-1}
+ .toolbar .result-hint{font-size:11px;line-height:1.35;padding:0 2px}
+ #cloud-status{padding:7px 10px;min-height:0;font-size:11px;margin:6px 0;line-height:1.45}
+ .dashboard-details{margin:6px 0 11px;padding:8px 10px}
+ .dashboard-details>summary{font-size:12px}
+ .dashboard-details .priority-summary{margin:6px 0;padding:8px 10px}
+ .property{padding:14px 13px}
+}
+@media(max-width:370px){
+ .headline{grid-template-columns:minmax(0,1fr) auto}
+ .headline h2{font-size:19px}
+ .headline .actions{gap:4px}
+ .headline #add-btn{padding:8px;font-size:11px}
+ .toolbar #search{padding:8px}
+ .mobile-filter-toggle{font-size:11px;padding:6px}
+ .stat span{font-size:9px}
+}
 /* v2.18 responsive reading mode: display-only; no change to encrypted data or sync. */
 @media (max-width:700px){
  html{-webkit-text-size-adjust:100%;scroll-padding-top:12px}
@@ -131,8 +181,8 @@
 <section class="auth" id="auth-screen"><div class="auth-card"><div class="auth-mark">⌂</div><h2 id="auth-title">建立本機密碼</h2><p class="muted" id="auth-desc">第一次使用，設定至少 8 個字元的密碼，加密儲存在這台裝置上的看屋資料。</p><form id="auth-form"><label class="field">密碼<input type="password" id="password" minlength="8" required autocomplete="current-password" placeholder="輸入密碼"></label><label class="field" id="confirm-field">確認密碼（首次建立資料時）<input type="password" id="confirm" minlength="8" autocomplete="new-password" placeholder="再次輸入密碼"></label><div class="error hidden" id="auth-error"></div><button type="submit" class="btn primary" id="auth-submit">建立並進入</button></form><p class="warn">這是本機加密解鎖，不是 GitHub／雲端帳號登入。密碼遺失無法復原；清除瀏覽器資料也會失去紀錄。請定期匯出備份，且不要在共用裝置使用。</p></div></section>
 <main class="hidden" id="dashboard"><div class="headline"><div><h2>我的房屋清單</h2><div class="muted">集中管理收藏、看屋備註與決策狀態</div></div><div class="actions"><button class="btn primary" id="add-btn">＋ 新增房屋</button><button class="btn" id="settings-open" type="button">⚙ 設定</button></div></div>
 <div class="stats"><div class="stat"><span>全部物件</span><strong id="count-all">0</strong></div><div class="stat"><span>待看屋</span><strong id="count-unseen">0</strong></div><div class="stat"><span>已看屋</span><strong id="count-viewed">0</strong></div><div class="stat"><span>值得複看</span><strong id="count-revisit">0</strong></div></div>
-<div class="toolbar"><input id="search" placeholder="搜尋地址、案名、備註…"><select id="listing-filter" aria-label="追蹤分類"><option value="">全部追蹤分類</option><option value="candidate">候選物件</option><option value="verify">待查證</option><option value="excluded">已排除</option><option value="delisted">已下架</option></select><select id="status-filter"><option value="">全部看屋狀態</option><option value="unseen">待看屋</option><option value="viewed">已看屋</option><option value="revisit">值得複看</option><option value="offered">已出價</option><option value="excluded">已排除</option></select><select id="sort"><option value="newest">最近更新</option><option value="priority">綜合購屋優先排名</option><option value="commuteAsc">基隆通勤最短（需看來源）</option><option value="commuteTrust">通勤可信度優先</option><option value="priceAsc">總價低到高</option><option value="priceDesc">總價高到低</option></select><select id="budget-filter" aria-label="預算篩選"><option value="">不限總價</option><option value="1700">1700 萬以內</option><option value="2000">2000 萬以內</option></select><select id="criteria-filter" aria-label="條件篩選"><option value="">全部物件</option><option value="pass">符合基本條件</option><option value="review">需補資料或不符合</option></select><div class="result-hint" id="result-hint"></div></div>
-<div id="weekly-feed-status" class="priority-summary" role="status">每週房價排程：等待首次資料發布</div><div id="listing-health-summary" class="priority-summary" role="status">房源網址狀態：尚未檢查</div><div id="priority-summary" class="priority-summary" role="status"></div><div id="cloud-status" role="status" class="notice">雲端同步會將 AES-GCM 加密資料儲存至授權帳號，不上傳明文筆記。</div><div class="cards" id="cards"></div><div class="notice">房屋資料在瀏覽器中以 AES-GCM 加密，登入授權後可同步加密密文至雲端。通勤比較基準僅儲存於此瀏覽器，換裝置須重填；匯出 JSON 為未加密備份，請妥善保管。</div>
+<div class="toolbar"><input id="search" placeholder="搜尋房屋名稱、地址或備註…"><button type="button" class="btn mobile-filter-toggle" id="mobile-filter-toggle" aria-controls="mobile-advanced-filters" aria-expanded="false">☷ 篩選與排序 <span id="filter-count"></span></button><div id="mobile-advanced-filters" class="advanced-filters"><select id="listing-filter" aria-label="追蹤分類"><option value="">全部追蹤分類</option><option value="candidate">候選物件</option><option value="verify">待查證</option><option value="excluded">已排除</option><option value="delisted">已下架</option></select><select id="status-filter"><option value="">全部看屋狀態</option><option value="unseen">待看屋</option><option value="viewed">已看屋</option><option value="revisit">值得複看</option><option value="offered">已出價</option><option value="excluded">已排除</option></select><select id="sort"><option value="newest">最近更新</option><option value="priority">綜合購屋優先排名</option><option value="commuteAsc">基隆通勤最短（需看來源）</option><option value="commuteTrust">通勤可信度優先</option><option value="priceAsc">總價低到高</option><option value="priceDesc">總價高到低</option></select><select id="budget-filter" aria-label="預算篩選"><option value="">不限總價</option><option value="1700">1700 萬以內</option><option value="2000">2000 萬以內</option></select><select id="criteria-filter" aria-label="條件篩選"><option value="">全部物件</option><option value="pass">符合基本條件</option><option value="review">需補資料或不符合</option></select></div><div class="result-hint" id="result-hint"></div></div>
+<div id="cloud-status" role="status" class="notice">加密資料同步狀態檢查中…</div><details class="dashboard-details"><summary>資料更新、房源健康與評分說明</summary><div id="weekly-feed-status" class="priority-summary" role="status">每週房價排程：等待首次資料發布</div><div id="listing-health-summary" class="priority-summary" role="status">房源網址狀態：尚未檢查</div><div id="priority-summary" class="priority-summary" role="status"></div></details><div class="cards" id="cards"></div><div class="notice">房屋資料在瀏覽器中以 AES-GCM 加密，登入授權後可同步加密密文至雲端。通勤比較基準僅儲存於此瀏覽器，換裝置須重填；匯出 JSON 為未加密備份，請妥善保管。</div>
 <input type="file" accept=".json,application/json" id="import-file" hidden></main>
 <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
 <div class="modal-head"><h3 id="settings-title">設定與資料管理</h3><button class="btn small" type="button" id="settings-close" aria-label="關閉設定">✕</button></div>
@@ -498,6 +548,21 @@ const oldItems=items;
 if(original)items=items.map(i=>i.id===editing?item:i);else items.unshift(item);
 try{await persist();$('editor').close();render()}catch(err){items=oldItems;alert('儲存失敗，已保留舊資料。')}};
 for(const id of ['search','listing-filter','status-filter','sort','budget-filter','criteria-filter'])$(id).addEventListener('input',render);
+const mobileToggle=$('mobile-filter-toggle');
+mobileToggle.onclick=()=>{
+ const panel=$('mobile-advanced-filters');
+ const open=panel.classList.toggle('is-open');
+ mobileToggle.setAttribute('aria-expanded',String(open));
+ mobileToggle.firstChild.textContent=open?'☷ 收合篩選 ':'☷ 篩選與排序 ';
+};
+const updateFilterCount=()=>{
+ const ids=['listing-filter','status-filter','budget-filter','criteria-filter'];
+ const count=ids.filter(id=>$(id).value!=='').length+($('sort').value!=='newest'?1:0);
+ $('filter-count').textContent=count?'('+count+')':'';
+};
+for(const id of ['listing-filter','status-filter','sort','budget-filter','criteria-filter'])$(id).addEventListener('change',updateFilterCount);
+updateFilterCount();
+
 $('lock-btn').onclick=()=>{secret=null;items=[];$('dashboard').classList.add('hidden');$('lock-btn').classList.add('hidden');$('auth-screen').classList.remove('hidden');$('password').value='';refreshAuth()};
 function refreshAuth(){const has=!!localStorage.getItem(KEY);$('auth-title').textContent=has?'解鎖房屋清單':'建立本機密碼';$('auth-desc').textContent=has?'輸入本機密碼解密你的看屋資料。':'新裝置請輸入原本的房屋資料密碼以取得雲端紀錄；首次建立資料才需要設定及確認密碼。';$('confirm-field').classList.toggle('hidden',has);$('auth-submit').textContent=has?'解鎖並進入':'建立並進入';$('auth-error').classList.add('hidden')}
 $('auth-form').onsubmit=async e=>{e.preventDefault();const pwd=$('password').value;let has=!!localStorage.getItem(KEY);$('auth-error').classList.add('hidden');if(pwd.length<8)return fail('密碼至少需要 8 個字元');$('auth-submit').disabled=true;try{await window.homeCloud?.prepareUnlock(pwd,has);has=!!localStorage.getItem(KEY);if(has){const obj=JSON.parse(localStorage.getItem(KEY));if(obj.v!==1)throw Error('Unsupported vault');const key=await derive(pwd,bytes(obj.salt));const plain=await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes(obj.iv)},key,bytes(obj.data));const rows=JSON.parse(decoder.decode(plain));if(!Array.isArray(rows)||!rows.every(validItem))throw Error('Invalid vault');items=rows;secret=key}else{if(pwd!==$('confirm').value)throw Error('兩次密碼不一致');const salt=crypto.getRandomValues(new Uint8Array(16));secret=await derive(pwd,salt);items=[];localStorage.setItem(KEY,await encrypt(items,secret,salt))}$('auth-screen').classList.add('hidden');$('dashboard').classList.remove('hidden');$('lock-btn').classList.remove('hidden');$('password').value='';$('confirm').value='';render();Promise.resolve(window.homeCloud?.afterUnlock()).catch(()=>{}).finally(async()=>{await updateWeeklyListings(false);await checkListingUrls(false)})}catch(err){fail('無法解鎖：密碼不正確或資料已損壞。')}finally{$('auth-submit').disabled=false}};
