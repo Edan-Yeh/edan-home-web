@@ -3,22 +3,13 @@
   "generated_at": "2026-10-28T02:00:00+08:00",
   "source": "台北兩房房價追蹤｜2026-10-25 已核實物件",
   "status": "published",
-  "description": "僅包含已由上期排程驗證的公開候選資訊，不含私人房屋狀態、備註或任何加密明文。",
+  "description": "公開候選僅保留未經人工排除物件。萬美大廈 7401152 因平日早上通勤基隆60分鐘硬條件缺乏可核實合格路線，2026-10-31 已從正式候選移出；非下架或售出判定。",
   "properties": [
     {
       "title": "賓士庭園兩房",
       "url": "https://buy.yungching.com.tw/house/7326299",
       "price": 1998,
       "area": 16.4,
-      "rooms": 2,
-      "status": "active",
-      "verifiedAt": "2026-10-25"
-    },
-    {
-      "title": "萬美大廈電梯兩房",
-      "url": "https://buy.yungching.com.tw/house/7401152",
-      "price": 1588,
-      "area": 23.6,
       "rooms": 2,
       "status": "active",
       "verifiedAt": "2026-10-25"
