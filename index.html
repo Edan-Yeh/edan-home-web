@@ -21,6 +21,81 @@
 .baseline-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}.baseline-grid input{width:100%;min-width:0}.priority-summary{padding:12px 16px;background:#eef6f2;border:1px solid #d9e9df;border-radius:12px;color:#285d55;font-size:13px;line-height:1.7;margin:14px 0}.priority-hint{font-size:12px;color:#597870;margin:8px 0 0}.priority-hint strong{color:#176d63}@media(max-width:560px){.baseline-grid{grid-template-columns:1fr}}
 .route-link{color:#147b73;font-size:13px;display:inline-block;margin:5px 0 10px;text-decoration:underline}.route-link:focus-visible{outline:2px solid #147b73;outline-offset:3px}
 .listing-check-report{display:grid;gap:8px;margin-top:10px}.listing-check-row{padding:10px 12px;background:#f2f6f5;border:1px solid #e0e9e6;border-radius:10px;font-size:13px;overflow-wrap:anywhere}.listing-check-row strong{display:block;margin-bottom:4px}.listing-check-row span{display:block;color:#506a65}.listing-health-detail{font-size:12px;color:#6a756f;margin:5px 0}.listing-health-warning{color:#a15a19}.listing-health-good{color:#187363}
+
+/* v2.18 responsive reading mode: display-only; no change to encrypted data or sync. */
+@media (max-width:700px){
+ html{-webkit-text-size-adjust:100%;scroll-padding-top:12px}
+ body{overflow-x:hidden}
+ header{padding:14px 16px;gap:10px;align-items:flex-start}
+ header h1{font-size:20px;letter-spacing:-.3px}
+ header small{font-size:12px}
+ .top-actions{width:100%;gap:7px;justify-content:flex-start}
+ .top-actions #account-email{max-width:100%;overflow-wrap:anywhere}
+ .top-actions .btn{min-height:42px;padding:9px 13px}
+ main{padding:17px 12px max(92px,env(safe-area-inset-bottom))}
+ .headline{align-items:flex-start;gap:12px;margin-bottom:16px}
+ .headline h2{font-size:24px}
+ .headline .actions{width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px}
+ .headline .actions .btn{width:100%;min-height:46px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:15px}
+ .stat{padding:13px 15px;box-shadow:none;border-radius:13px}
+ .stat span{font-size:12px}
+ .stat strong{font-size:25px;margin-top:4px}
+ .toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:11px;border-radius:14px;margin-bottom:14px}
+ .toolbar #search{grid-column:1/-1;width:100%;min-width:0}
+ .toolbar input,.toolbar select{font-size:16px;width:100%;min-width:0;min-height:45px;padding:10px 9px}
+ .toolbar #sort{grid-column:1/-1}
+ .toolbar .result-hint{grid-column:1/-1;line-height:1.6}
+ .priority-summary{padding:10px 12px;margin:9px 0;font-size:12px;line-height:1.5}
+ #cloud-status{margin:10px 0;font-size:12px}
+ .cards{grid-template-columns:1fr;gap:12px}
+ .property{padding:17px 15px;border-radius:16px;box-shadow:0 3px 14px #142f3408;min-width:0}
+ .property .head{gap:9px;align-items:flex-start}
+ .property h3{font-size:18px;line-height:1.45}
+ .property .head .tag{font-size:11px;padding:6px 9px}
+ .property .price{font-size:29px;margin:11px 0}
+ .chips{gap:6px;margin-bottom:11px}
+ .chips span{font-size:12px;padding:7px 9px}
+ .criteria{gap:5px}
+ .criteria span{font-size:11px;padding:6px 8px}
+ .property .notes{font-size:13px;line-height:1.6;min-height:0}
+ .property .foot{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch}
+ .property .foot button,.property .foot a{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px 7px;font-size:13px;border-radius:9px}
+ .property .foot a{border:1px solid #cfe4df;background:#f1f8f5}
+ .property .foot button.red{background:#fff3f1;border-color:#efd5d3}
+ .auth{min-height:calc(100dvh - 125px);padding:14px 12px}
+ .auth-card{padding:23px 18px;border-radius:17px}
+ .account-gate{padding:12px 12px max(15px,env(safe-area-inset-bottom))}
+ .account-gate .auth-card{padding:22px 18px}
+ .auth-card h2{font-size:23px}
+ .auth-card input,.account-gate input{min-height:46px;font-size:16px}
+ .auth-card .btn,.account-gate .btn{min-height:44px}
+ dialog,.settings-dialog{width:100%;max-width:100%;height:min(94dvh,980px);max-height:94dvh;margin:auto 0 0;border-radius:20px 20px 0 0}
+ dialog .modal-head{padding:14px 16px;min-height:58px;position:sticky;top:0;background:white;z-index:2}
+ dialog .modal-head h3{font-size:19px;overflow-wrap:anywhere}
+ dialog .modal-head button{min-width:42px;min-height:42px}
+ .form-grid{padding:15px 16px;gap:13px;max-height:calc(94dvh - 145px);padding-bottom:calc(22px + env(safe-area-inset-bottom))}
+ .field{font-size:13px;gap:6px}
+ .field input,.field select,.field textarea{width:100%;font-size:16px;min-height:46px}
+ .field textarea{min-height:100px}
+ .modal-actions{padding:12px 16px calc(12px + env(safe-area-inset-bottom));position:sticky;bottom:0;background:#fff;z-index:2;flex-wrap:wrap}
+ .modal-actions .btn{min-height:46px;flex:1 1 120px}
+ .settings-body{max-height:calc(94dvh - 70px);padding:15px 16px calc(24px + env(safe-area-inset-bottom))}
+ .settings-body .actions{display:grid;grid-template-columns:1fr;gap:8px}
+ .settings-body .actions .btn,.settings-body section>.btn{width:100%;min-height:44px}
+ .settings-body p{overflow-wrap:anywhere}
+ .info-grid,.detail-summary,.comparison-table,.score-breakdown{min-width:0;max-width:100%}
+ .wide-dialog{width:100%;max-width:100%;height:94dvh;max-height:94dvh;margin:auto 0 0;border-radius:20px 20px 0 0}
+ .comparison-table{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+}
+@media (max-width:370px){
+ main{padding-left:9px;padding-right:9px}
+ .toolbar{gap:7px;padding:9px}
+ .property{padding:15px 12px}
+ .property h3{font-size:17px}
+ .stat{padding:11px}
+}
+
 </style></head><body>
 <header><div><h1>⌂ Edan Home Tracker</h1><small>我的買房決策工作台</small></div><div class="top-actions"><small id="storage-status">私人本機資料 · 加密保存</small><span id="account-email" style="font-size:12px;color:#d5e9e3"></span><button class="btn ghost hidden" id="account-logout">登出帳號</button><button class="btn ghost hidden" id="lock-btn">鎖定</button></div></header>
 <section id="account-gate" class="account-gate"><div class="auth-card">
