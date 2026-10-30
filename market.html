@@ -48,7 +48,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
  .notice{padding:15px;line-height:1.7}
 }
 
-.commute-brief{margin:12px 0;padding:12px;background:#eff7f4;border:1px solid #d5e9e1;border-radius:11px;font-size:13px;line-height:1.6}.commute-brief p{margin:5px 0;color:#557067}.commute-brief details{margin-top:9px}.commute-brief summary{cursor:pointer;color:#115e56;font-weight:650}.commute-brief ol{padding-left:20px;overflow-wrap:anywhere}.commute-brief li{margin:9px 0}.commute-brief a{color:#126a5f;margin-left:5px}</style></head><body>
+.commute-brief{margin:12px 0;padding:12px;background:#eff7f4;border:1px solid #d5e9e1;border-radius:11px;font-size:13px;line-height:1.6}.commute-brief p{margin:5px 0;color:#557067}.commute-brief details{margin-top:9px}.commute-brief summary{cursor:pointer;color:#115e56;font-weight:650}.commute-brief ol{padding-left:20px;overflow-wrap:anywhere}.commute-brief li{margin:9px 0}.commute-brief a{color:#126a5f;margin-left:5px}.commute-audit{margin-top:8px;padding:9px 10px;background:white;border:1px solid #dce9e3;border-radius:8px}.commute-audit ul{margin:7px 0 4px;padding-left:19px}.commute-audit li{margin:3px 0;line-height:1.5}.commute-audit p{font-size:12px}</style></head><body>
 <header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>Supabase 雲端主資料庫 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
 <main>
 <section class="intro"><strong>雲端房源清單</strong><p>這裡直接讀取 Supabase 雲端主資料庫中已發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
@@ -99,7 +99,14 @@ function render(){
   const status=item.commuteStatus||'pending',minutes=number(item.commuteMinutes);
   const name=status==='documented_ideal'?'路線資料顯示 40 分鐘內':status==='documented_acceptable'?'路線資料顯示 41–60 分鐘':status==='documented_over_limit'?'路線資料超過 60 分鐘':'早上通勤待驗證';
   const label=document.createElement('strong');label.textContent='🚍 '+name+(minutes===null?'':' · '+minutes+' 分鐘');commute.append(label);
-  const caveat=document.createElement('p');caveat.textContent='僅為已整理的路線證據；尚未經交通 API 獨立核對站牌、實際班次及候車時間前，不得視為正式通勤合格。';commute.append(caveat);
+  const caveat=document.createElement('p');caveat.textContent='已收錄的路線資料不代表經官方 API 確認站牌或班次；獨立查證之前一律不是正式通勤合格。';commute.append(caveat);
+  const audit=item.commuteAudit||{};
+  const auditNote=document.createElement('div');auditNote.className='commute-audit';
+  const auditTitle=document.createElement('strong');auditTitle.textContent='交通證據檢查：'+(audit.status==='documented'?'格式完整・尚未獨立驗證':audit.status==='needs_review'?'有缺漏':audit.status==='invalid'?'格式錯誤':'缺少資料');auditNote.append(auditTitle);
+  const problems=Array.isArray(audit.reasons)?audit.reasons.slice(0,7):[];
+  if(problems.length){const list=document.createElement('ul');for(const problem of problems){const li=document.createElement('li');li.textContent=text(problem,160);list.append(li)}auditNote.append(list)}
+  const count=document.createElement('p');count.textContent='官方時刻表來源連結：'+(number(audit.recognized_official_evidence_links)||0)+' 處（僅辨識網址，尚未逐站驗證）';auditNote.append(count);
+  commute.append(auditNote);
   const route=item.commuteRoute;
   if(route&&Array.isArray(route.segments)&&status!=='pending'){
     const detail=document.createElement('details');const summary=document.createElement('summary');summary.textContent='展開完整上班通勤路線與查核來源';detail.append(summary);
@@ -122,12 +129,12 @@ function render(){
 const CLOUD_API='https://uwvtcqdsmuldswqbxtjf.supabase.co/rest/v1/home_public_listings';
 const CLOUD_PUBLISHABLE='sb_publishable_XfMTL7LnvCoTrJFtgNF0mw_qNxAiwAW';
 async function loadSupabase(){
- const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at,commute_status,commute_minutes,commute_route,commute_checked_at&order=title.asc&limit=250';
+ const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at,commute_status,commute_minutes,commute_route,commute_checked_at,commute_evidence_audit&order=title.asc&limit=250';
  const response=await fetch(url,{cache:'no-store',headers:{apikey:CLOUD_PUBLISHABLE,Accept:'application/json'}});
  if(!response.ok)throw new Error('Supabase HTTP '+response.status);
  const rows=await response.json();
  if(!Array.isArray(rows))throw new Error('雲端資料格式不正確');
- return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at,commuteStatus:x.commute_status,commuteMinutes:x.commute_minutes,commuteRoute:x.commute_route,commuteCheckedAt:x.commute_checked_at})).filter(valid);
+ return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at,commuteStatus:x.commute_status,commuteMinutes:x.commute_minutes,commuteRoute:x.commute_route,commuteCheckedAt:x.commute_checked_at,commuteAudit:x.commute_evidence_audit})).filter(valid);
 }
 async function loadEvents(){
  const root=el('events');root.replaceChildren();
