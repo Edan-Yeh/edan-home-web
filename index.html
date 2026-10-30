@@ -260,7 +260,7 @@ async function updateWeeklyListings(manual=false){
    const key=listingKey(row),index=next.findIndex(x=>listingKey(x)===key);
    const price=row.price==null?'':String(row.price),area=row.area==null?'':String(row.area),rooms=row.rooms==null?'':String(row.rooms);
    if(index<0){
-    next.push({id:crypto.randomUUID(),title:row.title,url:row.url,price,area,rooms,status:'unseen',listingStatus:'verify',elevator:'',layout:'',humidity:'',noise:'',commute:'',note:'',sourceVerifiedAt:row.verifiedAt,updated:now});
+    next.push({id:crypto.randomUUID(),title:row.title,url:row.url,price,area,rooms,status:'unseen',listingStatus:'verify',elevator:'',layout:'',humidity:'',noise:'',commute:'',note:'',sourceVerifiedAt:row.verifiedAt,commuteEvidence:row.commuteRoute||null,updated:now});
     added++;
     continue
    }
