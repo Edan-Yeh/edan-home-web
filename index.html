@@ -281,6 +281,7 @@ async function updateWeeklyListings(manual=false){
     }
    }
    if(newRow.sourceVerifiedAt!==row.verifiedAt){newRow.sourceVerifiedAt=row.verifiedAt;changed=true}
+   if(row.commuteRoute&&typeof row.commuteRoute==='object'&&JSON.stringify(newRow.commuteEvidence||null)!==JSON.stringify(row.commuteRoute)){newRow.commuteEvidence=row.commuteRoute;changed=true}
    if(changed){newRow.updated=now;updated++}
    next[index]=newRow;
   }
