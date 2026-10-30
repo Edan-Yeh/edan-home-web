@@ -48,7 +48,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
  .notice{padding:15px;line-height:1.7}
 }
 
-</style></head><body>
+.commute-brief{margin:12px 0;padding:12px;background:#eff7f4;border:1px solid #d5e9e1;border-radius:11px;font-size:13px;line-height:1.6}.commute-brief p{margin:5px 0;color:#557067}.commute-brief details{margin-top:9px}.commute-brief summary{cursor:pointer;color:#115e56;font-weight:650}.commute-brief ol{padding-left:20px;overflow-wrap:anywhere}.commute-brief li{margin:9px 0}.commute-brief a{color:#126a5f;margin-left:5px}</style></head><body>
 <header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>Supabase 雲端主資料庫 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
 <main>
 <section class="intro"><strong>雲端房源清單</strong><p>這裡直接讀取 Supabase 雲端主資料庫中已發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
@@ -94,7 +94,27 @@ function render(){
   const row=document.createElement('div');row.className='meta';
   for(const label of [number(item.rooms)===null?'房數待查核':item.rooms+' 房',number(item.area)===null?'主建坪待查核':'主建 '+item.area+' 坪']){const span=document.createElement('span');span.textContent=label;row.append(span)}
   card.append(row);
-  const verified=document.createElement('p');verified.textContent='來源最近確認日：'+text(item.verifiedAt,10)+' · 格局、屋況、通勤需驗證';card.append(verified);
+  const verified=document.createElement('p');verified.textContent='來源最近確認日：'+text(item.verifiedAt,10)+' · 格局、屋況另需驗證';card.append(verified);
+  const commute=document.createElement('div');commute.className='commute-brief';
+  const status=item.commuteStatus||'pending',minutes=number(item.commuteMinutes);
+  const name=status==='documented_ideal'?'路線資料顯示 40 分鐘內':status==='documented_acceptable'?'路線資料顯示 41–60 分鐘':status==='documented_over_limit'?'路線資料超過 60 分鐘':'早上通勤待驗證';
+  const label=document.createElement('strong');label.textContent='🚍 '+name+(minutes===null?'':' · '+minutes+' 分鐘');commute.append(label);
+  const caveat=document.createElement('p');caveat.textContent='僅為已整理的路線證據；尚未經交通 API 獨立核對站牌、實際班次及候車時間前，不得視為正式通勤合格。';commute.append(caveat);
+  const route=item.commuteRoute;
+  if(route&&Array.isArray(route.segments)&&status!=='pending'){
+    const detail=document.createElement('details');const summary=document.createElement('summary');summary.textContent='展開完整上班通勤路線與查核來源';detail.append(summary);
+    const intro=document.createElement('p');intro.textContent='住家：'+text(route.origin,150)+'｜出發：'+text(route.departureAt,40)+'｜終點：基隆市仁愛區孝二路86之5號';detail.append(intro);
+    const list=document.createElement('ol');
+    for(const step of route.segments.slice(0,20)){
+      const li=document.createElement('li');li.textContent=text(step.instruction,200)+'｜'+number(step.minutes)+' 分鐘'+(step.line?'｜'+text(step.line,40):'')+(step.boardStop?'｜上車 '+text(step.boardStop,70):'')+(step.alightStop?'｜下車 '+text(step.alightStop,70):'');
+      if(typeof step.evidenceUrl==='string'&&/^https:\/\//.test(step.evidenceUrl)){const link=document.createElement('a');link.href=step.evidenceUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent=' 站牌／班次來源';li.append(' ',link)}
+      list.append(li)
+    }
+    detail.append(list);
+    if(typeof route.sourceUrl==='string'&&/^https:\/\//.test(route.sourceUrl)){const link=document.createElement('a');link.href=route.sourceUrl;link.target='_blank';link.rel='noopener noreferrer';link.textContent='查看完整路線資料來源';detail.append(link)}
+    commute.append(detail);
+  }
+  card.append(commute);
   const link=document.createElement('a');link.textContent='查看原始房源';link.href=item.url;link.target='_blank';link.rel='noopener noreferrer';card.append(link);
   root.append(card);
  }
@@ -102,12 +122,12 @@ function render(){
 const CLOUD_API='https://uwvtcqdsmuldswqbxtjf.supabase.co/rest/v1/home_public_listings';
 const CLOUD_PUBLISHABLE='sb_publishable_XfMTL7LnvCoTrJFtgNF0mw_qNxAiwAW';
 async function loadSupabase(){
- const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at&order=title.asc&limit=250';
+ const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at,commute_status,commute_minutes,commute_route,commute_checked_at&order=title.asc&limit=250';
  const response=await fetch(url,{cache:'no-store',headers:{apikey:CLOUD_PUBLISHABLE,Accept:'application/json'}});
  if(!response.ok)throw new Error('Supabase HTTP '+response.status);
  const rows=await response.json();
  if(!Array.isArray(rows))throw new Error('雲端資料格式不正確');
- return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at})).filter(valid);
+ return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at,commuteStatus:x.commute_status,commuteMinutes:x.commute_minutes,commuteRoute:x.commute_route,commuteCheckedAt:x.commute_checked_at})).filter(valid);
 }
 async function loadEvents(){
  const root=el('events');root.replaceChildren();
