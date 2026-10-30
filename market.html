@@ -60,7 +60,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 <div class="toolbar">
 <input id="q" type="search" aria-label="搜尋案名" placeholder="搜尋案名">
 <select id="price" aria-label="預算"><option value="">不限價格</option><option value="1700">1,700 萬內</option><option value="2000">2,000 萬內</option></select>
-<select id="space" aria-label="主建物面積"><option value="">不限坪數</option><option value="15">主建物至少 15 坪</option></select>
+<select id="space" aria-label="主建物面積"><option value="">不限坪數</option><option value="15">主建物至少 15 坪</option></select><select id="commute-filter" aria-label="通勤證據狀態"><option value="">全部通勤狀態</option><option value="pending">通勤證據待補</option><option value="documented">路線資料已整理</option><option value="over">已有路線超過 60 分鐘</option></select>
 <button id="reload" type="button">重新取得雲端資料</button>
 </div>
 <p class="status" id="status" role="status">正在讀取已發布的公開房源…</p>
@@ -84,7 +84,8 @@ function render(){
  el('count').textContent=houses.length;
  el('budget').textContent=houses.filter(x=>number(x.price)!==null&&number(x.price)<=2000).length;
  el('area').textContent=houses.filter(x=>number(x.area)!==null&&number(x.area)>=15).length;
- const filtered=houses.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(max===null||(number(x.price)!==null&&number(x.price)<=max))&&(minArea===null||(number(x.area)!==null&&number(x.area)>=minArea)));
+ const routeFilter=el('commute-filter').value;
+ const filtered=houses.filter(x=>(!q||x.title.toLowerCase().includes(q))&&(max===null||(number(x.price)!==null&&number(x.price)<=max))&&(minArea===null||(number(x.area)!==null&&number(x.area)>=minArea))&&(!routeFilter||(routeFilter==='pending'?x.commuteAudit?.status!=='documented':routeFilter==='documented'?x.commuteAudit?.status==='documented':x.commuteStatus==='documented_over_limit')));
  const root=el('cards');root.replaceChildren();
  if(!filtered.length){const p=document.createElement('p');p.textContent='目前沒有符合篩選條件的已發布物件。';root.append(p);return}
  for(const item of filtered){
@@ -165,7 +166,7 @@ async function load(){
  }catch(e){el('status').className='status error';el('status').textContent='無法取得已發布資料：'+e.message+'。私人清單不受影響。'}
  finally{el('reload').disabled=false}
 }
-for(const id of ['q','price','space'])el(id).addEventListener('input',render);
+for(const id of ['q','price','space','commute-filter'])el(id).addEventListener('input',render);
 el('reload').addEventListener('click',load);
 load();
 </script></body></html>
