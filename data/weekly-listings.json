@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-31T01:22:29+08:00",
-  "source": "Home Tracker｜2026-10-31 手動排除不符通勤硬條件候選",
+  "generated_at": "2026-10-31T09:34:17+08:00",
+  "source": "台北兩房｜2026-10-31 房源查核及通勤證據稽核",
   "status": "published",
-  "description": "公開候選僅保留未經人工排除物件。萬美大廈 7401152 因平日早上通勤基隆60分鐘硬條件缺乏可核實合格路線，2026-10-31 已從正式候選移出；非下架或售出判定。",
+  "description": "今日重新確認賓士庭園單戶頁可讀、開價1998萬元、主建16.40坪、兩房；通勤證據不足，commuteRoute省略且由雲端標記pending。萬美大廈7401152依人工排除永久不重納入，非售出或下架。",
   "properties": [
     {
-      "title": "賓士庭園兩房",
+      "title": "賓士庭院管理二房",
       "url": "https://buy.yungching.com.tw/house/7326299",
       "price": 1998,
       "area": 16.4,
       "rooms": 2,
       "status": "active",
-      "verifiedAt": "2026-10-25"
+      "verifiedAt": "2026-10-31"
     }
   ]
 }
