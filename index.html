@@ -543,7 +543,34 @@ for(const item of shown){const card=el('article','property'),head=el('div','head
   const link=step.evidenceUrl&&safeUrl(step.evidenceUrl);
   if(link){const a=el('a','route-link',' 站牌或班次來源');a.href=link;a.target='_blank';a.rel='noopener noreferrer';li.append(a)}
   list.append(li);
- }details.append(list);card.append(details)
+ }details.append(list);
+ const busLegs=route.segments.filter(x=>x.mode==='bus'&&x.line&&x.boardStop&&x.alightStop);
+ if(busLegs.length){
+  const verify=el('button','btn small','向 TDX 核實站牌順序');
+  verify.type='button';
+  const response=el('p','muted','僅核對公車站序，不等於早上班次已查證；查核結果不修改私人備註。');
+  verify.onclick=async()=>{
+   if(!window.homeAuth?.authorized||!window.homeAuth.client)return;
+   const legs=busLegs.map(x=>({line:x.line,boardStop:x.boardStop,alightStop:x.alightStop,
+     type:x.busType||x.routeType||'intercity',city:x.city||'Taipei'}));
+   verify.disabled=true;response.textContent='向交通部 TDX 查核中…';
+   try{
+    const session=(await window.homeAuth.client.auth.getSession()).data.session;
+    if(!session?.access_token)throw Error('登入已失效，請重新登入');
+    const res=await fetch('https://uwvtcqdsmuldswqbxtjf.supabase.co/functions/v1/home-tdx-stop-check',{
+      method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({segments:legs})});
+    if(!res.ok)throw Error('查核服務 HTTP '+res.status);
+    const data=await res.json();
+    response.textContent=data.state==='credentials_required'?'尚未設定 TDX 官方 API 憑證，站牌與班次均待驗證':
+      data.stop_verified?'TDX 已核對上下車站序；平日班次與 60 分鐘上限尚未證明':
+      'TDX 站牌查核未通過／尚待確認：'+(data.segments||[]).map(x=>x.line+' '+x.state).join('、');
+   }catch(e){response.textContent='查核失敗：'+(e.message||'稍後再試')+'。不可視為通勤合格。'}
+   finally{verify.disabled=false}
+  };
+  details.append(verify,response);
+ }
+ card.append(details)
 }
 card.append(el('p','notes',item.note||'尚未留下看屋備註'));const foot=el('div','foot'),edit=el('button','btn small','編輯紀錄'),remove=el('button','btn small red','刪除');edit.onclick=()=>openEditor(item);remove.onclick=()=>removeTrackedHome(item,'manual');foot.append(edit,remove);
 const delist=el('button','btn small','確認下架並移除');delist.type='button';
