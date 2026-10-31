@@ -552,7 +552,7 @@ for(const item of shown){const card=el('article','property'),head=el('div','head
   verify.onclick=async()=>{
    if(!window.homeAuth?.authorized||!window.homeAuth.client)return;
    const legs=busLegs.map(x=>({line:x.line,boardStop:x.boardStop,alightStop:x.alightStop,
-     type:x.busType||x.routeType||'intercity',city:x.city||'Taipei'}));
+     type:x.busType||x.routeType||'',city:x.city||''}));
    verify.disabled=true;response.textContent='向交通部 TDX 查核中…';
    try{
     const session=(await window.homeAuth.client.auth.getSession()).data.session;
