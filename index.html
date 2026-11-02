@@ -546,25 +546,26 @@ for(const item of shown){const card=el('article','property'),head=el('div','head
  }details.append(list);
  const busLegs=route.segments.filter(x=>x.mode==='bus'&&x.line&&x.boardStop&&x.alightStop);
  if(busLegs.length){
-  const verify=el('button','btn small','核對 TDX 站序與平日早班');
+  const verify=el('button','btn small','檢查站牌、早班與完整通勤');
   verify.type='button';
-  const response=el('p','muted','核對官方公車站序與路線早上發車紀錄；不是上車站的實際班次，也不自動通過通勤門檻。');
+  const response=el('p','muted','檢查全程分段時間與官方站序、路線早班；在平日07–09點另查即時ETA。資料不足不會自動合格。');
   verify.onclick=async()=>{
    if(!window.homeAuth?.authorized||!window.homeAuth.client)return;
    const legs=busLegs.map(x=>({line:x.line,boardStop:x.boardStop,alightStop:x.alightStop,
-     type:x.busType||x.routeType||'',city:x.city||''}));
+     busType:x.busType||x.routeType||'',city:x.city||''}));
    verify.disabled=true;response.textContent='向交通部 TDX 查核中…';
    try{
     const session=(await window.homeAuth.client.auth.getSession()).data.session;
     if(!session?.access_token)throw Error('登入已失效，請重新登入');
-    const res=await fetch('https://uwvtcqdsmuldswqbxtjf.supabase.co/functions/v1/home-tdx-morning-check',{
+    const res=await fetch('https://uwvtcqdsmuldswqbxtjf.supabase.co/functions/v1/home-tdx-journey-check',{
       method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
-      body:JSON.stringify({segments:legs})});
+      body:JSON.stringify({commuteRoute:{...route,segments:route.segments.map(x=>x.mode==='bus'?{...x,busType:x.busType||x.routeType||'',city:x.city||''}:x)}})});
     if(!res.ok)throw Error('查核服務 HTTP '+res.status);
     const data=await res.json();
-    response.textContent=data.state==='credentials_required'?'尚未設定 TDX 官方 API 憑證，站牌與班次均待驗證':
-      data.stop_verified?(data.segments?.some(x=>x.route_schedule_found)?'TDX 站序已核對，路線有平日早上發車紀錄；指定站牌實際停靠時間與門到門60分鐘仍待驗證':'TDX 站序已核對，但平日早班尚無足夠證據；不得視為合格'):
-      'TDX 站牌查核未通過／尚待確認：'+(data.segments||[]).map(x=>x.line+' '+x.state).join('、');
+    const issues=(data.errors||[]).join('；');
+    const details=(data.segments||[]).map(x=>x.line+'：'+(x.stop_verified?'站序符合':'站序未確認')+'、'+(x.routeMorningScheduleFound?'有平日路線早班':'無路線早班證據')+(x.etaState==='live_eta_observed'?'、有此刻站牌ETA':x.etaState==='not_checked_outside_peak'?'、非尖峰未查即時到站':'、站牌即時到站待查')).join('；');
+    response.textContent=data.state==='credentials_required'?'TDX API 憑證尚未設定，無法查官方站牌班次':data.state==='incomplete_itinerary'?'路線資料不完整：'+issues:
+      (data.documentedMinutes?'分段路線估算 '+data.documentedMinutes+' 分鐘（未正式驗證）｜':'')+(details||issues||'尚未取得交通資料')+'。指定站牌的平日固定停靠與完整門到門時間仍待驗證。
    }catch(e){response.textContent='查核失敗：'+(e.message||'稍後再試')+'。不可視為通勤合格。'}
    finally{verify.disabled=false}
   };
