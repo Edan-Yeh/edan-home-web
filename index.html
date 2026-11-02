@@ -565,7 +565,7 @@ for(const item of shown){const card=el('article','property'),head=el('div','head
     const issues=(data.errors||[]).join('；');
     const details=(data.segments||[]).map(x=>x.line+'：'+(x.stop_verified?'站序符合':'站序未確認')+'、'+(x.routeMorningScheduleFound?'有平日路線早班':'無路線早班證據')+(x.etaState==='live_eta_observed'?'、有此刻站牌ETA':x.etaState==='not_checked_outside_peak'?'、非尖峰未查即時到站':'、站牌即時到站待查')).join('；');
     response.textContent=data.state==='credentials_required'?'TDX API 憑證尚未設定，無法查官方站牌班次':data.state==='incomplete_itinerary'?'路線資料不完整：'+issues:
-      (data.documentedMinutes?'分段路線估算 '+data.documentedMinutes+' 分鐘（未正式驗證）｜':'')+(details||issues||'尚未取得交通資料')+'。指定站牌的平日固定停靠與完整門到門時間仍待驗證。
+      (data.documentedMinutes?'分段路線估算 '+data.documentedMinutes+' 分鐘（未正式驗證）｜':'')+(details||issues||'尚未取得交通資料')+'。指定站牌的平日固定停靠與完整門到門時間仍待驗證。';
    }catch(e){response.textContent='查核失敗：'+(e.message||'稍後再試')+'。不可視為通勤合格。'}
    finally{verify.disabled=false}
   };
