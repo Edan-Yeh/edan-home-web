@@ -146,7 +146,7 @@
  .stat{padding:11px}
 }
 
-</style></head><body>
+.commute-plan-panel{padding:10px 12px;margin:10px 0;border:1px solid #d3e2e5;border-radius:12px}.commute-plan-panel>p{margin:5px 0;font-size:12px}.commute-option{margin:12px 0;padding:10px 12px;border-top:1px solid #c9d9db;font-size:13px}.commute-option li{margin:4px 0;line-height:1.5}</style></head><body>
 <header><div><h1>⌂ Edan Home Tracker</h1><small>我的買房決策工作台</small></div><div class="top-actions"><small id="storage-status">私人本機資料 · 加密保存</small><span id="account-email" style="font-size:12px;color:#d5e9e3"></span><button class="btn ghost hidden" id="account-logout">登出帳號</button><button class="btn ghost hidden" id="lock-btn">鎖定</button></div></header>
 <section id="account-gate" class="account-gate"><div class="auth-card">
 <div class="auth-mark">✓</div><h2>帳號登入驗證</h2>
@@ -573,6 +573,53 @@ for(const item of shown){const card=el('article','property'),head=el('div','head
  }
  card.append(details)
 }
+const routePanel=el('div','commute-plan-panel'),autoRoute=el('button','btn small','自動產生早上去基隆路線');
+autoRoute.type='button';
+const routeMessage=el('p','muted','使用已確認住宅入口地址規劃；需 Google Routes 授權，班次與通勤資格另行核實。');
+routePanel.append(autoRoute,routeMessage);
+const planResult=item.commutePlannerResult;
+if(planResult&&Array.isArray(planResult.options)){
+ const last=el('details','commute-evidence'),heading=el('summary','','上次自動規劃：'+planResult.options.length+' 條候選路線（尚未符合正式驗證）');last.append(heading);
+ const checked=el('p','muted','規劃時間：'+String(planResult.generatedAt||'未記錄')+'｜僅供交通研究比較');last.append(checked);
+ for(const option of planResult.options.slice(0,4)){
+  const wrap=el('div','commute-option'),duration=Number(option.totalMinutes),title=el('strong','',String(Number.isFinite(duration)?duration:'待查')+' 分鐘｜'+(duration<=40?'預估理想':duration<=60?'預估可接受':'預估超過60分')+'｜未完成站牌班次驗證');wrap.append(title);
+  const tdx=Array.isArray(option.tdxChecks)?option.tdxChecks:[];
+  if(tdx.length)wrap.append(el('p','muted','TDX 公車站序：'+(tdx.every(x=>x.stop_verified)?'已核對':'未全部確認')+'；不代表平日指定班次已確認'));
+  const steps=el('ol','');
+  for(const st of (option.segments||[]).slice(0,35)){
+   const li=el('li','',String(st.instruction||'待確認')+'｜'+String(st.minutes??'?')+' 分鐘');
+   if(st.departureAt)li.append(document.createTextNode('｜預估上車 '+new Date(st.departureAt).toLocaleTimeString('zh-TW',{timeZone:'Asia/Taipei',hour:'2-digit',minute:'2-digit'})));
+   steps.append(li)
+  }wrap.append(steps);last.append(wrap)
+ }
+ routePanel.append(last)
+}
+autoRoute.onclick=async()=>{
+ if(!window.homeAuth?.authorized||!window.homeAuth.client)return;
+ const initial=String(item.commuteOrigin||'').trim();
+ const origin=window.prompt('請確認房屋「實際住宅入口」完整地址（不是捷運站或社區概略位置）：',initial);
+ if(origin===null)return;
+ if(origin.trim().length<9){routeMessage.textContent='需要可定位的完整住宅入口地址；沒有地址不能自動驗證。';return}
+ if(!window.confirm('確認這是該戶住宅真正的出入口地址，而不是房仲提供的概略地點？'))return;
+ autoRoute.disabled=true;routeMessage.textContent='正在取得平日早上大眾運輸候選路線及 TDX 官方站序…';
+ try{
+  const session=(await window.homeAuth.client.auth.getSession()).data.session;
+  if(!session?.access_token)throw Error('請先重新登入');
+  const resp=await fetch('https://uwvtcqdsmuldswqbxtjf.supabase.co/functions/v1/home-route-planner',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},body:JSON.stringify({origin:origin.trim(),addressVerified:true})});
+  if(!resp.ok)throw Error('路線服務 HTTP '+resp.status);
+  const data=await resp.json();
+  if(data.state!=='routes_generated_evidence_pending'||!Array.isArray(data.options)||!data.options.length){
+    routeMessage.textContent=({google_api_key_required:'尚未設定 Google Routes API 金鑰；沒有產生假路線。',no_transit_route:'找不到該時段的大眾運輸路線。',origin_required:'必須提供精確地址。',routes_api_failed:'Google 路線服務尚無法提供結果。'}[data.state]||data.message||data.state||'路線產生失敗')+'｜不列入正式合格候選。';return
+  }
+  const oldItems=items;const nextItems=items.slice(),idx=nextItems.findIndex(x=>x.id===item.id);
+  if(idx<0)throw Error('房屋紀錄已不存在');
+  nextItems[idx]={...nextItems[idx],commutePlannerResult:{generatedAt:new Date().toISOString(),origin:origin.trim(),options:data.options.slice(0,4)},updated:new Date().toISOString()};
+  items=nextItems;
+  try{await persist();render()}catch(e){items=oldItems;render();throw e}
+ }catch(e){routeMessage.textContent='自動規劃未完成：'+(e?.message||'請重試')+'。原紀錄不變。'}
+ finally{autoRoute.disabled=false}
+};
+card.append(routePanel);
 card.append(el('p','notes',item.note||'尚未留下看屋備註'));const foot=el('div','foot'),edit=el('button','btn small','編輯紀錄'),remove=el('button','btn small red','刪除');edit.onclick=()=>openEditor(item);remove.onclick=()=>removeTrackedHome(item,'manual');foot.append(edit,remove);
 const delist=el('button','btn small','確認下架並移除');delist.type='button';
 delist.title='僅在仲介確認或刊登頁明確下架後使用；網站不會以連線錯誤推斷下架';
