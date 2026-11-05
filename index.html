@@ -528,6 +528,7 @@ async function removeTrackedHome(item,reason){
  try{await persist();render();return true}
  catch(error){items=before;render();alert('刪除失敗，已保留原始紀錄。');return false}
 }
+const routePlanCache=new Map();
 function render(){const q=$('search').value.toLowerCase(),filter=$('status-filter').value,listingFilter=$('listing-filter').value,sort=$('sort').value,budget=$('budget-filter').value,criteriaFilter=$('criteria-filter').value;
 $('count-all').textContent=items.length;$('count-unseen').textContent=items.filter(i=>i.status==='unseen').length;$('count-viewed').textContent=items.filter(i=>i.status==='viewed').length;$('count-revisit').textContent=items.filter(i=>i.status==='revisit').length;
 const shown=items.filter(i=>(!listingFilter||categoryOf(i)===listingFilter)&&(!filter||i.status===filter)&&(!budget||i.price!==''&&i.price!=null&&Number(i.price)<=Number(budget))&&(!criteriaFilter||(criteriaFilter==='pass'?evaluateHome(i).kind==='pass':evaluateHome(i).kind!=='pass'))&&[i.title,i.note,i.commute].join(' ').toLowerCase().includes(q)).sort((a,b)=>sort==='priceAsc'?(Number(a.price)||Infinity)-(Number(b.price)||Infinity):sort==='priceDesc'?(Number(b.price)||-1)-(Number(a.price)||-1):sort==='priority'?comparePriority(a,b):sort==='commuteAsc'?(knownCommute(a)??Infinity)-(knownCommute(b)??Infinity):sort==='commuteTrust'?commuteReliability(a).rank-commuteReliability(b).rank||(knownCommute(a)??Infinity)-(knownCommute(b)??Infinity):String(b.updated).localeCompare(String(a.updated)));
@@ -577,10 +578,10 @@ const routePanel=el('div','commute-plan-panel'),autoRoute=el('button','btn small
 autoRoute.type='button';
 const routeMessage=el('p','muted','使用已確認住宅入口地址規劃；需 Google Routes 授權，班次與通勤資格另行核實。');
 routePanel.append(autoRoute,routeMessage);
-const planResult=item.commutePlannerResult;
+const planResult=routePlanCache.get(item.id);
 if(planResult&&Array.isArray(planResult.options)){
- const last=el('details','commute-evidence'),heading=el('summary','','上次自動規劃：'+planResult.options.length+' 條候選路線（尚未符合正式驗證）');last.append(heading);
- const checked=el('p','muted','規劃時間：'+String(planResult.generatedAt||'未記錄')+'｜僅供交通研究比較');last.append(checked);
+ const last=el('details','commute-evidence'),heading=el('summary','','本次暫存規劃：'+planResult.options.length+' 條候選路線（尚未符合正式驗證）');last.append(heading);
+ const checked=el('p','muted','規劃時間：'+String(planResult.generatedAt||'未記錄')+'｜Google Maps 路線資料只在本次頁面會話中呈現，不寫入私人保管庫');last.append(checked);
  for(const option of planResult.options.slice(0,4)){
   const wrap=el('div','commute-option'),duration=Number(option.totalMinutes),title=el('strong','',String(Number.isFinite(duration)?duration:'待查')+' 分鐘｜'+(duration<=40?'預估理想':duration<=60?'預估可接受':'預估超過60分')+'｜未完成站牌班次驗證');wrap.append(title);
   const tdx=Array.isArray(option.tdxChecks)?option.tdxChecks:[];
@@ -596,7 +597,7 @@ if(planResult&&Array.isArray(planResult.options)){
 }
 autoRoute.onclick=async()=>{
  if(!window.homeAuth?.authorized||!window.homeAuth.client)return;
- const initial=String(item.commuteOrigin||'').trim();
+ const initial=String(item.commuteOrigin||routePlanCache.get(item.id)?.origin||'').trim();
  const origin=window.prompt('請確認房屋「實際住宅入口」完整地址（不是捷運站或社區概略位置）：',initial);
  if(origin===null)return;
  if(origin.trim().length<9){routeMessage.textContent='需要可定位的完整住宅入口地址；沒有地址不能自動驗證。';return}
@@ -611,11 +612,8 @@ autoRoute.onclick=async()=>{
   if(data.state!=='routes_generated_evidence_pending'||!Array.isArray(data.options)||!data.options.length){
     routeMessage.textContent=({google_api_key_required:'尚未設定 Google Routes API 金鑰；沒有產生假路線。',no_transit_route:'找不到該時段的大眾運輸路線。',origin_required:'必須提供精確地址。',routes_api_failed:'Google 路線服務尚無法提供結果。'}[data.state]||data.message||data.state||'路線產生失敗')+'｜不列入正式合格候選。';return
   }
-  const oldItems=items;const nextItems=items.slice(),idx=nextItems.findIndex(x=>x.id===item.id);
-  if(idx<0)throw Error('房屋紀錄已不存在');
-  nextItems[idx]={...nextItems[idx],commutePlannerResult:{generatedAt:new Date().toISOString(),origin:origin.trim(),options:data.options.slice(0,4)},updated:new Date().toISOString()};
-  items=nextItems;
-  try{await persist();render()}catch(e){items=oldItems;render();throw e}
+  routePlanCache.set(item.id,{generatedAt:new Date().toISOString(),origin:origin.trim(),options:data.options.slice(0,4)});
+  render();
  }catch(e){routeMessage.textContent='自動規劃未完成：'+(e?.message||'請重試')+'。原紀錄不變。'}
  finally{autoRoute.disabled=false}
 };
