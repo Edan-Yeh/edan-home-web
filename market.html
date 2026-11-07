@@ -114,6 +114,10 @@ function render(){
   if(blockers.length){const blockList=document.createElement('ul');for(const b of blockers){const li=document.createElement('li');li.textContent=text(b,150);blockList.append(li)}preflight.append(blockList)}
   const description=document.createElement('p');description.textContent='地址符合資料前置門檻 ≠ Google／TDX 查核通過，仍須確認站牌班次及完整通勤。';preflight.append(description);
   commute.append(preflight);
+  const auto=document.createElement('p');
+  const autoNames={waiting_for_entrance:'排隊前待補住宅出入口',queued:'入口資料已備妥，等待自動規劃',processing:'自動查核執行中',route_generated_unverified:'已自動取得候選路線，仍待指定站班次驗證',no_route_for_morning:'該早上時段未找到可用路線，需人工再查',api_unavailable:'路線 API 暫時無法核實',paused:'自動查核暫停',not_started:'尚未開始自動規劃'};
+  auto.textContent='自動路線查核：'+(autoNames[item.autoRouteStatus]||'尚未開始')+(item.autoRouteCheckedAt?'｜最近查核 '+new Date(item.autoRouteCheckedAt).toLocaleString('zh-TW'):'')+'。';
+  commute.append(auto);
   const route=item.commuteRoute;
   if(route&&Array.isArray(route.segments)&&status!=='pending'){
     const detail=document.createElement('details');const summary=document.createElement('summary');summary.textContent='展開完整上班通勤路線與查核來源';detail.append(summary);
@@ -136,12 +140,12 @@ function render(){
 const CLOUD_API='https://uwvtcqdsmuldswqbxtjf.supabase.co/rest/v1/home_public_listings';
 const CLOUD_PUBLISHABLE='sb_publishable_XfMTL7LnvCoTrJFtgNF0mw_qNxAiwAW';
 async function loadSupabase(){
- const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at,commute_status,commute_minutes,commute_route,commute_checked_at,commute_evidence_audit,route_readiness,route_blockers&order=title.asc&limit=250';
+ const url=CLOUD_API+'?select=source_url,title,price_wan,main_ping,rooms,verified_at,published_at,commute_status,commute_minutes,commute_route,commute_checked_at,commute_evidence_audit,route_readiness,route_blockers,auto_route_status,auto_route_last_checked_at&order=title.asc&limit=250';
  const response=await fetch(url,{cache:'no-store',headers:{apikey:CLOUD_PUBLISHABLE,Accept:'application/json'}});
  if(!response.ok)throw new Error('Supabase HTTP '+response.status);
  const rows=await response.json();
  if(!Array.isArray(rows))throw new Error('雲端資料格式不正確');
- return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at,commuteStatus:x.commute_status,commuteMinutes:x.commute_minutes,commuteRoute:x.commute_route,commuteCheckedAt:x.commute_checked_at,commuteAudit:x.commute_evidence_audit,routeReadiness:x.route_readiness,routeBlockers:x.route_blockers})).filter(valid);
+ return rows.map(x=>({url:x.source_url,title:x.title,price:x.price_wan,area:x.main_ping,rooms:x.rooms,verifiedAt:x.verified_at,status:'active',publishedAt:x.published_at,commuteStatus:x.commute_status,commuteMinutes:x.commute_minutes,commuteRoute:x.commute_route,commuteCheckedAt:x.commute_checked_at,commuteAudit:x.commute_evidence_audit,routeReadiness:x.route_readiness,routeBlockers:x.route_blockers,autoRouteStatus:x.auto_route_status,autoRouteCheckedAt:x.auto_route_last_checked_at})).filter(valid);
 }
 async function loadEvents(){
  const root=el('events');root.replaceChildren();
