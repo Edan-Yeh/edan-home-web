@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-10",
+  "sources": [
+    {
+      "id": "yungching",
+      "name": "永慶房屋",
+      "homepage": "https://buy.yungching.com.tw/",
+      "status": "active",
+      "property_url_policy": "verified_listing_only"
+    },
+    {
+      "id": "591",
+      "name": "591售屋網",
+      "homepage": "https://sale.591.com.tw/",
+      "status": "active",
+      "property_url_policy": "verified_listing_only"
+    },
+    {
+      "id": "sinyi",
+      "name": "信義房屋",
+      "homepage": "https://www.sinyi.com.tw/buy/list",
+      "status": "expanded_research",
+      "property_url_policy": "verify_individual_link"
+    },
+    {
+      "id": "hbhousing",
+      "name": "住商不動產",
+      "homepage": "https://www.hbhousing.com.tw/Web/C302/BuyHouse/",
+      "status": "expanded_research",
+      "property_url_policy": "verify_individual_link"
+    },
+    {
+      "id": "rakuya",
+      "name": "樂屋網",
+      "homepage": "https://www.rakuya.com.tw/sell/result",
+      "status": "expanded_research",
+      "property_url_policy": "verify_individual_link"
+    },
+    {
+      "id": "twhg",
+      "name": "台灣房屋",
+      "homepage": "https://www.twhg.com.tw/",
+      "status": "expanded_research",
+      "property_url_policy": "verify_individual_link"
+    }
+  ],
+  "rules": {
+    "no_fabricated_property_urls": true,
+    "no_unverified_official_recommendation": true,
+    "identity_dedup": "same-building-floor-unit-evidence-or-exact-url",
+    "manual_exclusions_win": true,
+    "commute_hard_rule": "weekday morning outbound origin-to-keelung-office <=60m independently verified",
+    "research_statuses": [
+      "needs_identity",
+      "needs_layout",
+      "needs_main_area",
+      "needs_commute",
+      "excluded",
+      "delisted"
+    ]
+  }
+}
