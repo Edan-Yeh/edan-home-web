@@ -1,6 +1,31 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-10T00:56:00+08:00",
-  "description": "研究候選與正式合格分流；此檔新設，目前未完成新來源單戶驗證，不以假房源填充。既有兩筆公開房源仍屬通勤待驗證研究候選，不是正式合格。",
-  "items": []
+  "generated_at": "2026-11-10T09:20:23+08:00",
+  "description": "2026-11-10：兩筆既有永慶單戶頁可讀，僅列研究候選；無精確入口與平日早班指定站班次證據，原始格局仍待地政核對。其他平台搜尋尚未取得足夠證據建立符合研究條件的台北單戶。",
+  "items": [
+    {
+      "title": "賓士庭院管理二房",
+      "source": "yungching",
+      "url": "https://buy.yungching.com.tw/house/7326299",
+      "status": "needs_commute",
+      "reasons": [
+        "缺住宅精確入口地址",
+        "缺平日指定站班次與門到門通勤證據",
+        "原始合法兩房待核實"
+      ],
+      "checkedAt": "2026-11-10"
+    },
+    {
+      "title": "鳳鳴大樓｜雙連晶華邊間兩房",
+      "source": "yungching",
+      "url": "https://buy.yungching.com.tw/house/7398146",
+      "status": "needs_commute",
+      "reasons": [
+        "缺住宅精確入口地址",
+        "缺平日指定站班次與門到門通勤證據",
+        "原始合法兩房待核實"
+      ],
+      "checkedAt": "2026-11-10"
+    }
+  ]
 }
