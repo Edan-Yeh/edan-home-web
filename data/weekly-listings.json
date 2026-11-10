@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-09T09:04:40+08:00",
+  "generated_at": "2026-11-10T09:20:23+08:00",
   "source": "台北兩房房價追蹤",
   "status": "published",
-  "description": "2026-11-09 巡查：賓士庭園原始單戶頁搜尋快照仍顯示1998萬元，但快照並非當日即時售況，verifiedAt維持2026-10-31；鳳鳴大樓7398146原始頁本次無法讀取，保留舊資料與原verifiedAt並列待查。搜尋南京三民、行天宮及台北市其他區域永慶與591，未核實符合全部刊登條件的新單戶。兩戶均無公開可核實的精確住宅入口門牌及官方平日指定上車站班次、完整門到門時間，省略entrance與commuteRoute，通勤維持待驗證。人工排除萬美大廈7401152未重新納入。generated_at僅代表巡查發布時間，不代表售況當日核實；沒有證據證明降價、售出或下架。",
+  "description": "2026-11-10 六來源部分巡查；永慶既有兩筆單戶頁可讀、標價1998萬元，未核實精確住宅入口及平日指定站早班、完整通勤；591首頁逾時但可取得一筆新北新莊單戶，未證明符合通勤與主建面積；信義及樂屋列表可讀，住商列表內容快照較舊，台灣房屋入口存取受限。未完成全來源符合條件單戶盤點，發現率統計不宣稱完整。既有兩筆不屬正式合格；保留原verifiedAt，人工排除不重入。",
   "properties": [
     {
       "title": "賓士庭院管理二房",
@@ -23,5 +23,50 @@
       "status": "active",
       "verifiedAt": "2026-10-31"
     }
-  ]
+  ],
+  "discovery": {
+    "sources_checked": [
+      {
+        "id": "yungching",
+        "status": "checked",
+        "found": 2
+      },
+      {
+        "id": "591",
+        "status": "partial",
+        "found": null
+      },
+      {
+        "id": "sinyi",
+        "status": "partial",
+        "found": null
+      },
+      {
+        "id": "hbhousing",
+        "status": "stale_listing",
+        "found": null
+      },
+      {
+        "id": "rakuya",
+        "status": "partial",
+        "found": null
+      },
+      {
+        "id": "twhg",
+        "status": "blocked",
+        "found": null
+      }
+    ],
+    "counts": {
+      "discovered": null,
+      "duplicates": null,
+      "research": null,
+      "excluded": null,
+      "formal_qualified": 0
+    },
+    "source_breakdown": {},
+    "exclusion_reasons": {
+      "通勤待驗證": 2
+    }
+  }
 }
