@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-11-10T09:20:23+08:00",
+  "generated_at": "2026-11-11T09:52:03+08:00",
   "source": "台北兩房房價追蹤",
   "status": "published",
-  "description": "2026-11-10 六來源部分巡查；永慶既有兩筆單戶頁可讀、標價1998萬元，未核實精確住宅入口及平日指定站早班、完整通勤；591首頁逾時但可取得一筆新北新莊單戶，未證明符合通勤與主建面積；信義及樂屋列表可讀，住商列表內容快照較舊，台灣房屋入口存取受限。未完成全來源符合條件單戶盤點，發現率統計不宣稱完整。既有兩筆不屬正式合格；保留原verifiedAt，人工排除不重入。",
+  "description": "2026-11-11 六來源部分巡查：永慶既有兩筆原始單戶頁可讀且仍標1998萬元；信義新增一筆北投行義路1280萬元電梯兩房研究候選（低於理想價）；591首頁逾時但部分單戶頁可讀；樂屋列表可讀但首屏無合條件單戶；住商來源未完成有效查詢；台灣房屋403。全來源未完整盤點，通勤與原始合法格局未核實，不宣稱搜尋完整或正式合格。",
   "properties": [
     {
       "title": "賓士庭院管理二房",
@@ -12,7 +12,7 @@
       "area": 16.4,
       "rooms": 2,
       "status": "active",
-      "verifiedAt": "2026-10-31"
+      "verifiedAt": "2026-11-11"
     },
     {
       "title": "鳳鳴大樓｜雙連晶華邊間兩房",
@@ -21,14 +21,14 @@
       "area": 20.96,
       "rooms": 2,
       "status": "active",
-      "verifiedAt": "2026-10-31"
+      "verifiedAt": "2026-11-11"
     }
   ],
   "discovery": {
     "sources_checked": [
       {
         "id": "yungching",
-        "status": "checked",
+        "status": "partial",
         "found": 2
       },
       {
@@ -39,11 +39,11 @@
       {
         "id": "sinyi",
         "status": "partial",
-        "found": null
+        "found": 1
       },
       {
         "id": "hbhousing",
-        "status": "stale_listing",
+        "status": "blocked",
         "found": null
       },
       {
@@ -66,7 +66,7 @@
     },
     "source_breakdown": {},
     "exclusion_reasons": {
-      "通勤待驗證": 2
+      "通勤待驗證": 3
     }
   }
 }
