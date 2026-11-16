@@ -48,7 +48,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
  .notice{padding:15px;line-height:1.7}
 }
 
-.commute-brief{margin:12px 0;padding:12px;background:#eff7f4;border:1px solid #d5e9e1;border-radius:11px;font-size:13px;line-height:1.6}.commute-brief p{margin:5px 0;color:#557067}.commute-brief details{margin-top:9px}.commute-brief summary{cursor:pointer;color:#115e56;font-weight:650}.commute-brief ol{padding-left:20px;overflow-wrap:anywhere}.commute-brief li{margin:9px 0}.commute-brief a{color:#126a5f;margin-left:5px}.commute-audit{margin-top:8px;padding:9px 10px;background:white;border:1px solid #dce9e3;border-radius:8px}.commute-audit ul{margin:7px 0 4px;padding-left:19px}.commute-audit li{margin:3px 0;line-height:1.5}.commute-audit p{font-size:12px}.source-tags{display:flex;gap:8px;flex-wrap:wrap}.source-tags a{font-size:13px;display:inline-block;padding:9px 12px;background:#eef7f3;border-radius:9px;color:#116958;text-decoration:none}.discovery-day{padding:12px 0;border-bottom:1px solid #dce9e4}.discovery-day p{margin:5px 0;font-size:13px;color:#56736c}.discovery-day a{font-size:13px;color:#116958}</style></head><body>
+.commute-brief{margin:12px 0;padding:12px;background:#eff7f4;border:1px solid #d5e9e1;border-radius:11px;font-size:13px;line-height:1.6}.commute-brief p{margin:5px 0;color:#557067}.commute-brief details{margin-top:9px}.commute-brief summary{cursor:pointer;color:#115e56;font-weight:650}.commute-brief ol{padding-left:20px;overflow-wrap:anywhere}.commute-brief li{margin:9px 0}.commute-brief a{color:#126a5f;margin-left:5px}.commute-audit{margin-top:8px;padding:9px 10px;background:white;border:1px solid #dce9e3;border-radius:8px}.commute-audit ul{margin:7px 0 4px;padding-left:19px}.commute-audit li{margin:3px 0;line-height:1.5}.commute-audit p{font-size:12px}.source-tags{display:flex;gap:8px;flex-wrap:wrap}.source-tags a{font-size:13px;display:inline-block;padding:9px 12px;background:#eef7f3;border-radius:9px;color:#116958;text-decoration:none}.discovery-day{padding:12px 0;border-bottom:1px solid #dce9e4}.research-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.research-cards .research-card{padding:15px;border:1px solid #dbe8e2;border-radius:12px;background:#f8fbf9;min-width:0}.research-card strong{display:block;line-height:1.5}.research-card p{margin:9px 0;color:#536d65;font-size:13px;line-height:1.6}.research-card a{display:inline-block;padding:8px 0;color:#106f62;font-weight:650}@media(max-width:650px){.research-cards{grid-template-columns:1fr}}.discovery-day p{margin:5px 0;font-size:13px;color:#56736c}.discovery-day a{font-size:13px;color:#116958}</style></head><body>
 <header><h1>⌂ Edan Home Tracker｜最新公開房源</h1><p>Supabase 雲端主資料庫 · 不需登入、不需開啟電腦、任何裝置都能查看</p></header>
 <main>
 <section class="intro"><strong>研究觀察房源（非正式通勤合格推薦）</strong><p>這裡直接讀取 Supabase 雲端主資料庫中已發布、且有來源連結的候選房屋。更新時間取自排程資料，不代表所有物件此刻仍有出售。</p><a class="back" href="./index.html">前往私人房屋工作台（需登入）</a></section>
@@ -57,6 +57,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 <div class="stat"><small>預算 2,000 萬內</small><strong id="budget">—</strong></div>
 <div class="stat"><small>主建 ≥ 15 坪</small><strong id="area">—</strong></div>
 </div>
+<section class="intro" aria-label="待驗證研究清單" id="research-section"><h2>研究候選 <span id="research-count" style="font-size:16px;color:#58776d">讀取中…</span></h2><p>每日發現的新房源會直接列在這裡；未核實住宅入口、原始合法格局及早上通勤前，均不是正式合格推薦。與下方公開觀察房源可能重複，請以單戶連結辨識。</p><div id="research-list" class="research-cards">讀取研究清單…</div><p class="status" id="research-updated"></p></section>
 <div class="toolbar">
 <input id="q" type="search" aria-label="搜尋案名" placeholder="搜尋案名">
 <select id="price" aria-label="預算"><option value="">不限價格</option><option value="1700">1,700 萬內</option><option value="2000">2,000 萬內</option></select>
@@ -69,7 +70,7 @@ main{max-width:1100px;margin:auto;padding:25px 18px 70px}.intro{background:white
 <section class="intro" style="margin-top:24px" aria-label="每日發布驗收"><h2>每日搜尋與發布驗收</h2><p>分開檢查搜尋紀錄、GitHub 當日發布、Supabase 同步結果。沒有執行證據不會顯示成功。</p><div id="publication-audit" class="status">讀取最新驗收紀錄…</div></section>
 <section class="intro" aria-label="每日房源發現率"><h2>每日房源發現率</h2><p>發現 → 去重 → 研究候選 → 排除 → 正式合格。沒有上報的天數以「未回報」表示，不以零筆代替。</p><div id="discovery-report" class="status">讀取發現率紀錄…</div></section>
 <section class="intro" aria-label="多房仲來源"><h2>已納入搜尋來源</h2><div id="source-list" class="source-tags">讀取來源清單…</div><p>新來源先用於研究發現，單戶身份、面積、合法格局及早上通勤完整證據通過後，才可列為正式合格。</p></section>
-<section class="intro" aria-label="待驗證研究清單"><h2>新來源研究清單</h2><p>此處獨立呈現待查物件與排除原因，不會混入正式合格推薦；上方兩筆既有公開房源同樣仍屬研究觀察。</p><div id="research-list" class="listing-events">讀取研究清單…</div></section>
+
 <div class="notice">本頁為公開房源研究資料，沒有私人看屋備註、評分、人工排除、帳號或解密密碼。屋況、格局合法性、漏水、噪音及到基隆孝二分公司的尖峰門到門通勤，未有可靠證據時一律待確認。登入私人工作台才能查看及編輯個人紀錄。</div>
 </main>
 <script>
@@ -221,18 +222,18 @@ async function loadSourcesAndResearch(){
   const r=await fetch('./data/research-listings.json',{cache:'no-store'});if(!r.ok)throw Error('research');
   const data=await r.json(),root=el('research-list');root.replaceChildren();
   const rows=Array.isArray(data.items)?data.items:[];
-  if(!rows.length){root.textContent='新來源尚無完成單戶連結核實的研究紀錄；不代表今天搜尋結果為零。';return}
+  el('research-count').textContent=rows.length+' 筆';el('research-updated').textContent='研究資料更新：'+text(data.generated_at,25);if(!rows.length){root.textContent='目前尚無完成單戶連結核實的研究紀錄；不代表今天搜尋結果為零。';return}
   for(const item of rows.slice(0,100)){
-   const block=document.createElement('div');block.className='discovery-day';
-   const title=document.createElement('strong');title.textContent=text(item.title,130)+'｜'+text(item.source,45);block.append(title);
-   const reason=document.createElement('p');reason.textContent='狀態：'+text(item.status,40)+'｜待查／排除原因：'+(Array.isArray(item.reasons)?item.reasons.join('、'):'未提供');block.append(reason);
+   const block=document.createElement('div');block.className='research-card';
+   const title=document.createElement('strong');title.textContent=text(item.title,130);block.append(title);
+   const reason=document.createElement('p');reason.textContent='來源：'+text(item.source,45)+'｜'+(item.status==='needs_commute'?'通勤待驗證':item.status==='needs_layout'?'原始格局待驗證':item.status==='needs_main_area'?'主建坪數待驗證':item.status==='needs_identity'?'房屋身份待驗證':item.status==='excluded'?'已排除':item.status==='delisted'?'已下架':'資料待驗證')+'｜'+(Array.isArray(item.reasons)?item.reasons.join('、'):'未提供')+'｜最近查核：'+(item.checkedAt||'未提供');block.append(reason);
    const link=typeof item.url==='string'?item.url:'';
    if(/^https:\/\//.test(link)&&new URL(link).protocol==='https:'){
     const a=document.createElement('a');a.href=link;a.target='_blank';a.rel='noopener noreferrer';a.textContent='開啟房屋原始頁';block.append(a)
    }
    root.append(block)
   }
- }catch{el('research-list').textContent='研究清單暫時無法取得'}
+ }catch{el('research-count').textContent='無法讀取';el('research-list').textContent='研究清單暫時無法取得'}
 }
 async function load(){
  el('reload').disabled=true;el('status').textContent='正在讀取雲端資料…';el('status').className='status';
