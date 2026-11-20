@@ -3,22 +3,13 @@
   "generated_at": "2026-11-20T09:26:45+08:00",
   "source": "台北兩房房價追蹤",
   "status": "published",
-  "description": "2026-11-20 六來源部分搜尋，新增591及信義各一筆研究線索，公開觀察兩戶沿用，未完成全量搜尋及完整通勤查核。",
+  "description": "2026-11-20 使用者人工排除鳳鳴大樓7398146：第二間臥室斜角、不方正；其餘房源及既有查證日期保留。",
   "properties": [
     {
       "title": "賓士庭院管理二房",
       "url": "https://buy.yungching.com.tw/house/7326299",
       "price": 1998,
       "area": 16.4,
-      "rooms": 2,
-      "status": "active",
-      "verifiedAt": "2026-11-15"
-    },
-    {
-      "title": "鳳鳴大樓｜雙連晶華邊間兩房",
-      "url": "https://buy.yungching.com.tw/house/7398146",
-      "price": 1998,
-      "area": 20.96,
       "rooms": 2,
       "status": "active",
       "verifiedAt": "2026-11-15"
